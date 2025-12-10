@@ -1,8 +1,8 @@
-# Why TOG is Simpler and Better
+# Why TOG
 
-## Mission: Simpler than Python, Better than Rust
+## Mission: Combining Simplicity, Safety, and Performance
 
-TOG was designed to eliminate the complexity of both Python and Rust while keeping their best features.
+TOG was designed to combine the best features of modern programming languages while maintaining simplicity and performance.
 
 ## Key Simplifications
 
@@ -77,19 +77,19 @@ if x > 5:
     print("big")
 ```
 
-## Better Than Rust
+## Key Advantages
 
 ### 1. **Simpler Ownership**
-Rust's borrow checker is complex. TOG's ownership is intuitive.
+TOG's ownership model is intuitive and easy to understand.
 
 ### 2. **No Lifetime Annotations**
-No need to understand lifetimes - the compiler handles it.
+The compiler handles memory management automatically.
 
-### 3. **Better Error Messages**
-Clear, helpful errors that guide you to the solution.
+### 3. **Clear Error Messages**
+Helpful errors that guide you to the solution.
 
 ### 4. **Gradual Typing**
-Start without types, add them as needed.
+Start without types, add them as needed for optimization.
 
 ## Comparison Table
 
@@ -107,9 +107,7 @@ Start without types, add them as needed.
 
 ## Learning Curve
 
-- **Python**: Easy to start, but many gotchas
-- **Rust**: Steep learning curve, complex concepts
-- **TOG**: **Easy to start, stays simple**
+TOG is designed to be easy to learn and use, with a gentle learning curve that stays consistent.
 
 ## Real-World Example
 
@@ -139,19 +137,19 @@ fn main() {
 }
 ```
 
-**TOG is:**
-- Shorter (no boilerplate)
-- Simpler (no f-strings, auto-conversion)
-- More consistent (everything is a function)
-- Safer (memory safety)
-- Faster (compiled)
+**TOG features:**
+- Minimal boilerplate
+- Simple syntax with auto-conversion
+- Consistent design (everything is a function)
+- Memory safety
+- High performance through compilation
 
 ## Conclusion
 
 TOG combines:
-- **Python's simplicity** → Made even simpler
-- **Rust's safety** → Made more intuitive
-- **Rust's performance** → Without the complexity
+- **Simplicity** - Clean, intuitive syntax
+- **Safety** - Memory safety without complexity
+- **Performance** - Compiled for speed
 
-**TOG: The language that's simpler than Python and better than Rust!**
+**TOG: A modern programming language that balances simplicity, safety, and performance.**
 
