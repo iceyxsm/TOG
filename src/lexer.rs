@@ -62,10 +62,7 @@ pub enum Keyword {
     Match,
     Break,
     Continue,
-    True,
-    False,
     None,
-    Print,
     Int,
     Float,
     String,
@@ -109,7 +106,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
             
             // Numbers
             '0'..='9' => {
-                let start_col = column;
+                let _start_col = column;
                 let mut num_str = String::new();
                 let mut is_float = false;
                 
@@ -135,7 +132,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
                         .map_err(|_| TogError::LexError(
                             format!("Invalid float: {}", num_str),
                             line,
-                            start_col
+                            _start_col
                         ))?;
                     tokens.push(Token::Float(num));
                 } else {
@@ -143,7 +140,7 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
                         .map_err(|_| TogError::LexError(
                             format!("Invalid integer: {}", num_str),
                             line,
-                            start_col
+                            _start_col
                         ))?;
                     tokens.push(Token::Int(num));
                 }
@@ -151,9 +148,9 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
             
             // Strings (with interpolation support)
             '"' => {
+                let _start_col = column;
                 chars.next(); // consume opening quote
                 column += 1;
-                let start_col = column;
                 let mut string = String::new();
                 let mut has_interpolation = false;
                 
@@ -369,8 +366,8 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
             }
             
             // Identifiers and keywords
-            'a'..='z' | 'A'..='Z' | '_' => {
-                let start_col = column;
+            ch if ch.is_alphabetic() || ch == '_' => {
+                let _start_col = column;
                 let mut ident = String::new();
                 
                 while let Some(&ch) = chars.peek() {
@@ -398,10 +395,9 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
                     "match" => tokens.push(Token::Keyword(Keyword::Match)),
                     "break" => tokens.push(Token::Keyword(Keyword::Break)),
                     "continue" => tokens.push(Token::Keyword(Keyword::Continue)),
-                    "true" => tokens.push(Token::Bool(true)),
-                    "false" => tokens.push(Token::Bool(false)),
                     "none" => tokens.push(Token::Keyword(Keyword::None)),
-                    "print" => tokens.push(Token::Keyword(Keyword::Print)),
+                    // "print" is now a built-in function, not a keyword
+                    // "print" => tokens.push(Token::Keyword(Keyword::Print)),
                     "int" => tokens.push(Token::Keyword(Keyword::Int)),
                     "float" => tokens.push(Token::Keyword(Keyword::Float)),
                     "string" => tokens.push(Token::Keyword(Keyword::String)),

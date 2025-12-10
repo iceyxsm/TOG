@@ -1,10 +1,10 @@
 // Comprehensive TOG example showcasing key features
-fn greet(name: string) -> string {
-    return "Hello, " + name + "!"
+fn greet(name) {
+    "Hello, " + name + "!"
 }
 
-fn calculate(x: int, y: int) -> int {
-    return x * y + 10
+fn calculate(x, y) {
+    x * y + 10
 }
 
 fn main() {
@@ -13,9 +13,9 @@ fn main() {
     let version = 1
     let pi = 3.14159
     
-    // Explicit types
-    let count: int = 42
-    let price: float = 99.99
+    // Explicit types (type annotations are optional)
+    let count = 42
+    let price = 99.99
     
     // Print statements
     print("Welcome to TOG!")

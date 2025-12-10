@@ -1,6 +1,8 @@
 use crate::ast::*;
 use crate::error::TogError;
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug, Clone, PartialEq)]
 enum ControlFlow {
@@ -9,7 +11,52 @@ enum ControlFlow {
     Continue,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
+pub struct Environment {
+    enclosing: Option<Rc<RefCell<Environment>>>,
+    values: HashMap<String, Value>,
+}
+
+impl Environment {
+    fn new(enclosing: Option<Rc<RefCell<Environment>>>) -> Self {
+        Environment {
+            enclosing,
+            values: HashMap::new(),
+        }
+    }
+
+    fn define(&mut self, name: String, value: Value) {
+        self.values.insert(name, value);
+    }
+
+    fn get(&self, name: &str) -> Result<Value, TogError> {
+        if let Some(value) = self.values.get(name) {
+            return Ok(value.clone());
+        }
+        if let Some(enclosing) = &self.enclosing {
+            return enclosing.borrow().get(name);
+        }
+        Err(TogError::RuntimeError(format!("Undefined variable: {}", name), None))
+    }
+
+    fn assign(&mut self, name: &str, value: Value) -> Result<(), TogError> {
+        if self.values.contains_key(name) {
+            self.values.insert(name.to_string(), value);
+            return Ok(());
+        }
+        if let Some(enclosing) = &self.enclosing {
+            return enclosing.borrow_mut().assign(name, value);
+        }
+        Err(TogError::RuntimeError(format!("Cannot assign to undefined variable: {}", name), None))
+    }
+
+    fn remove(&mut self, name: &str) {
+        self.values.remove(name);
+    }
+}
+
+
+#[derive(Debug, Clone)]
 pub enum Value {
     Int(i64),
     Float(f64),
@@ -23,45 +70,80 @@ pub enum Value {
     Function {
         name: String,
         params: Vec<Param>,
-        body: Expr,
+        body: Rc<Expr>,
+        closure: Rc<RefCell<Environment>>,
         bound_self: Option<Box<Value>>,
     },
     None,
 }
 
+impl PartialEq for Value {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Value::Int(a), Value::Int(b)) => a == b,
+            (Value::Float(a), Value::Float(b)) => a == b,
+            (Value::String(a), Value::String(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::Array(a), Value::Array(b)) => a == b,
+            (Value::Struct { name: n1, fields: f1 }, Value::Struct { name: n2, fields: f2 }) => {
+                n1 == n2 && f1 == f2
+            }
+            // Functions are compared by reference/pointer, not content.
+            // For simplicity here, we'll consider them unequal unless we add IDs.
+            (Value::Function { .. }, Value::Function { .. }) => false,
+            (Value::None, Value::None) => true,
+            _ => false,
+        }
+    }
+}
+
+
 pub struct Interpreter {
-    environment: HashMap<String, Value>,
+    environment: Rc<RefCell<Environment>>,
     struct_defs: HashMap<String, (Vec<(String, Option<Type>)>, Vec<MethodDecl>)>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Self {
-            environment: HashMap::new(),
+            environment: Rc::new(RefCell::new(Environment::new(None))),
             struct_defs: HashMap::new(),
         }
     }
     
     pub fn interpret(program: Program) -> Result<(), TogError> {
         let mut interpreter = Self::new();
-        
-        // First pass: define all functions
-        for stmt in program.statements {
-            let (_, _) = interpreter.execute_stmt(&stmt)?;
+
+        // Single pass execution
+        for stmt in &program.statements {
+            let _ = interpreter.execute_stmt(stmt)?;
         }
         
-        // Second pass: automatically call main() if it exists
-        if let Some(Value::Function { .. }) = interpreter.environment.get("main") {
-            let main_func = interpreter.environment.get("main").unwrap().clone();
-            if let Value::Function { body, .. } = main_func {
-                interpreter.evaluate(&body)?;
-            }
+        // After all statements are executed (including function definitions),
+        // find and execute the main function.
+        let main_info = {
+            interpreter.environment.borrow().get("main").ok().and_then(|val| {
+                if let Value::Function { body, closure, .. } = val {
+                    Some((body, closure))
+                } else {
+                    None
+                }
+            })
+        };
+
+        if let Some((body, closure)) = main_info {
+            // Execute main in its own top-level scope.
+            let old_env = Rc::clone(&interpreter.environment);
+            interpreter.environment = Rc::new(RefCell::new(Environment::new(Some(closure))));
+            interpreter.evaluate(&body)?;
+            interpreter.environment = old_env;
         }
         
         Ok(())
     }
     
     fn execute_stmt(&mut self, stmt: &Stmt) -> Result<(Value, ControlFlow), TogError> {
+        // println!("[DEBUG] execute_stmt(): stmt: {:?}", stmt); // Removed: causes infinite recursion with closures
         match stmt {
             Stmt::Expr(expr) => {
                 let val = self.evaluate(expr)?;
@@ -69,19 +151,12 @@ impl Interpreter {
             }
             Stmt::Let { name, value, .. } => {
                 let val = self.evaluate(value)?;
-                self.environment.insert(name.clone(), val.clone());
+                self.environment.borrow_mut().define(name.clone(), val.clone());
                 Ok((val, ControlFlow::Normal))
             }
             Stmt::Assign { name, value } => {
-                // Check if variable exists
-                if !self.environment.contains_key(name) {
-                    return Err(TogError::RuntimeError(
-                        format!("Cannot assign to undefined variable: {}", name),
-                        None
-                    ));
-                }
                 let val = self.evaluate(value)?;
-                self.environment.insert(name.clone(), val.clone());
+                self.environment.borrow_mut().assign(name, val.clone())?;
                 Ok((val, ControlFlow::Normal))
             }
             Stmt::AssignField { object, field, value } => {
@@ -111,55 +186,18 @@ impl Interpreter {
         }
     }
     
-    fn evaluate_block_with_control_flow(&mut self, body: &Expr) -> Result<ControlFlow, TogError> {
-        match body {
-            Expr::Block(statements) => {
-                for stmt in statements {
-                    // Check if this statement is an expression that might contain control flow
-                    match stmt {
-                        Stmt::Expr(expr) => {
-                            // Recursively evaluate with control flow awareness
-                            match self.evaluate_block_with_control_flow(expr) {
-                                Ok(ControlFlow::Break) | Ok(ControlFlow::Continue) => {
-                                    return Ok(self.evaluate_block_with_control_flow(expr)?);
-                                }
-                                Ok(ControlFlow::Normal) => {}
-                                Err(e) => return Err(e),
-                            }
-                        }
-                        _ => {
-                            // Regular statement - execute normally
-                            let (_, flow) = self.execute_stmt(stmt)?;
-                            match flow {
-                                ControlFlow::Break | ControlFlow::Continue => {
-                                    return Ok(flow);
-                                }
-                                ControlFlow::Normal => {}
-                            }
-                        }
-                    }
-                }
-                Ok(ControlFlow::Normal)
-            }
-            Expr::If { condition, then_branch, else_branch } => {
-                // Handle if statements with control flow
-                let cond_val = self.evaluate(condition)?;
-                if is_truthy(&cond_val) {
-                    self.evaluate_block_with_control_flow(then_branch)
-                } else if let Some(else_expr) = else_branch {
-                    self.evaluate_block_with_control_flow(else_expr)
-                } else {
-                    Ok(ControlFlow::Normal)
-                }
-            }
-            _ => {
-                // Single expression body - evaluate it (can't have break/continue)
-                self.evaluate(body)?;
-                Ok(ControlFlow::Normal)
+    fn evaluate_block(&mut self, statements: &[Stmt]) -> Result<(Value, ControlFlow), TogError> {
+        let mut last_val = Value::None;
+        for stmt in statements {
+            let (val, control_flow) = self.execute_stmt(stmt)?;
+            last_val = val;
+            if control_flow != ControlFlow::Normal {
+                return Ok((last_val, control_flow));
             }
         }
+        Ok((last_val, ControlFlow::Normal))
     }
-    
+
     fn evaluate(&mut self, expr: &Expr) -> Result<Value, TogError> {
         match expr {
             Expr::Literal(lit) => {
@@ -196,6 +234,7 @@ impl Interpreter {
                         ));
                     }
                 }
+
                 Ok(Value::Struct {
                     name: name.clone(),
                     fields: map,
@@ -203,12 +242,7 @@ impl Interpreter {
             }
             Expr::Variable(name) => {
                 // Builtin functions are handled in call expressions
-                self.environment.get(name)
-                    .cloned()
-                    .ok_or_else(|| TogError::RuntimeError(
-                        format!("Undefined variable: {}", name),
-                        None
-                    ))
+                self.environment.borrow().get(name)
             }
             Expr::FieldAccess { object, field } => {
                 let obj_val = self.evaluate(object)?;
@@ -237,29 +271,43 @@ impl Interpreter {
                 self.evaluate_unary_op(*op, &val)
             }
             Expr::Call { callee, args } => {
+                // println!("[DEBUG] evaluate_call: callee: {:?}", callee); // Removed: causes infinite recursion with closures
                 let arg_values: Result<Vec<Value>, TogError> = 
                     args.iter().map(|arg| self.evaluate(arg)).collect();
                 let arg_values = arg_values?;
                 
-                // Method call: obj.method(...)
+                // Method call: obj.method(...) or Struct.method(...)
                 if let Expr::FieldAccess { object, field: method_name } = callee.as_ref() {
+                    // Check for static method call: StructName.method()
+                    if let Expr::Variable(struct_name) = object.as_ref() {
+                        if self.struct_defs.contains_key(struct_name) {
+                            if let Some((_, methods)) = self.struct_defs.get(struct_name) {
+                                if let Some(method) = methods.iter().find(|m| m.name == *method_name).cloned() {
+                                    // Static method call. Execute in a new environment.
+                                    let old_env = Rc::clone(&self.environment);
+                                    self.environment = Rc::new(RefCell::new(Environment::new(Some(Rc::clone(&old_env)))));
+                                    for (param, arg_value) in method.params.iter().zip(arg_values.iter()) {
+                                        self.environment.borrow_mut().define(param.name.clone(), arg_value.clone());
+                                    }
+                                    let result = self.evaluate(&method.body);
+                                    self.environment = old_env;
+                                    return result;
+                                }
+                            }
+                        }
+                    }
+
                     let obj_val = self.evaluate(object)?;
                     if let Value::Struct { name: struct_name, .. } = obj_val.clone() {
                         if let Some((_, methods)) = self.struct_defs.get(&struct_name) {
                             if let Some(method) = methods.iter().find(|m| m.name == *method_name).cloned() {
-                                if arg_values.len() != method.params.len() {
-                                    return Err(TogError::RuntimeError(
-                                        format!("Method {} expects {} arguments, got {}", method_name, method.params.len(), arg_values.len()),
-                                        None
-                                    ));
-                                }
                                 
-                                let old_env = self.environment.clone();
-                                // New scope
-                                self.environment = HashMap::new();
-                                self.environment.insert("self".to_string(), obj_val.clone());
+                                let old_env = Rc::clone(&self.environment);
+                                // Create a new environment for the method call, enclosing the global scope.
+                                self.environment = Rc::new(RefCell::new(Environment::new(Some(Rc::clone(&old_env)))));
+                                self.environment.borrow_mut().define("self".to_string(), obj_val.clone());
                                 for (param, arg_value) in method.params.iter().zip(arg_values.iter()) {
-                                    self.environment.insert(param.name.clone(), arg_value.clone());
+                                    self.environment.borrow_mut().define(param.name.clone(), arg_value.clone());
                                 }
                                 let result = self.evaluate(&method.body);
                                 self.environment = old_env;
@@ -298,195 +346,101 @@ impl Interpreter {
                 
                 let callee_val = self.evaluate(callee)?;
                 match callee_val {
-                    Value::Function { params, body, bound_self, .. } => {
-                        // Check argument count
+                    Value::Function { params, body, closure, bound_self, .. } => {
                         if arg_values.len() != params.len() {
                             return Err(TogError::RuntimeError(
-                                format!(
-                                    "Function expects {} arguments, got {}",
-                                    params.len(),
-                                    arg_values.len()
-                                ),
+                                format!("Function expects {} arguments, got {}", params.len(), arg_values.len()),
                                 None
                             ));
                         }
                         
-                        // Save current environment
-                        let old_env = self.environment.clone();
-                        
-                        // Create new scope and bind parameters
+                        let old_env = Rc::clone(&self.environment);
+                        // The new environment encloses the function's definition environment (closure).
+                        self.environment = Rc::new(RefCell::new(Environment::new(Some(closure))));
+
+                        // If a method is bound, add 'self' to the new scope
                         if let Some(self_val) = bound_self {
-                            self.environment.insert("self".to_string(), (*self_val).clone());
-                        }
-                        for (param, arg_value) in params.iter().zip(arg_values.iter()) {
-                            self.environment.insert(param.name.clone(), arg_value.clone());
+                            self.environment.borrow_mut().define("self".to_string(), *self_val);
                         }
                         
-                        // Execute function body
+                        // Bind arguments to parameters in the new scope
+                        for (param, arg_val) in params.iter().zip(arg_values.iter()) {
+                            self.environment.borrow_mut().define(param.name.clone(), arg_val.clone());
+                        }
+
                         let result = self.evaluate(&body);
-                        
-                        // Restore environment (pop scope)
+
                         self.environment = old_env;
-                        
-                        result
+                        return result;
                     }
-                    _ => Err(TogError::RuntimeError(
+                    _ => Err(TogError::TypeError(
                         "Can only call functions".to_string(),
                         None
                     ))
                 }
             }
             Expr::Block(statements) => {
-                // Blocks can contain break/continue, but we can't handle them here
-                // They need to be handled by the loop. For now, we'll evaluate normally
-                // and let the loop's evaluate_block_with_control_flow handle it
-                let mut last_value = Value::None;
-                for stmt in statements {
-                    let (val, flow) = self.execute_stmt(stmt)?;
-                    last_value = val;
-                    // If we get break/continue here, it means we're not in a loop context
-                    // This will be caught by the loop's evaluate_block_with_control_flow
-                    match flow {
-                        ControlFlow::Break | ControlFlow::Continue => {
-                            // This is an error - break/continue outside loop
-                            return Err(TogError::RuntimeError(
-                                format!("{:?} outside of loop", flow),
-                                None
-                            ));
-                        }
-                        ControlFlow::Normal => {}
-                    }
+                let (last_val, flow) = self.evaluate_block(statements)?;
+                if flow != ControlFlow::Normal {
+                     return Err(TogError::RuntimeError(format!("{:?} outside of loop", flow), None));
                 }
-                Ok(last_value)
+                Ok(last_val)
             }
             Expr::If { condition, then_branch, else_branch } => {
                 let cond_val = self.evaluate(condition)?;
                 if is_truthy(&cond_val) {
-                    // Check if then_branch can have control flow (Block or nested If)
-                    match then_branch.as_ref() {
-                        Expr::Block(_) | Expr::If { .. } => {
-                            // Use control flow aware evaluation, but we're not in a loop
-                            // So we'll just evaluate normally and catch any break/continue as errors
-                            match self.evaluate_block_with_control_flow(then_branch) {
-                                Ok(ControlFlow::Normal) => Ok(Value::None),
-                                Ok(ControlFlow::Break) => Err(TogError::RuntimeError("Break outside of loop".to_string(), None)),
-                                Ok(ControlFlow::Continue) => Err(TogError::RuntimeError("Continue outside of loop".to_string(), None)),
-                                Err(e) => Err(e),
-                            }
-                        }
-                        _ => self.evaluate(then_branch)
-                    }
+                    self.evaluate(then_branch)
                 } else if let Some(else_expr) = else_branch {
-                    match else_expr.as_ref() {
-                        Expr::Block(_) | Expr::If { .. } => {
-                            match self.evaluate_block_with_control_flow(else_expr) {
-                                Ok(ControlFlow::Normal) => Ok(Value::None),
-                                Ok(ControlFlow::Break) => Err(TogError::RuntimeError("Break outside of loop".to_string(), None)),
-                                Ok(ControlFlow::Continue) => Err(TogError::RuntimeError("Continue outside of loop".to_string(), None)),
-                                Err(e) => Err(e),
-                            }
-                        }
-                        _ => self.evaluate(else_expr)
-                    }
+                    self.evaluate(else_expr)
                 } else {
                     Ok(Value::None)
                 }
             }
             Expr::While { condition, body } => {
-                loop {
-                    let cond_val = self.evaluate(condition)?;
-                    if !is_truthy(&cond_val) {
-                        break;
-                    }
-                    
-                    // Evaluate body - handle break/continue
-                    let body_result = self.evaluate_block_with_control_flow(body);
-                    match body_result {
-                        Ok(ControlFlow::Break) => break,
-                        Ok(ControlFlow::Continue) => continue,
-                        Ok(ControlFlow::Normal) => {},
-                        Err(e) => return Err(e),
+                while is_truthy(&self.evaluate(condition)?) {
+                    if let Expr::Block(statements) = body.as_ref() {
+                        let (_, flow) = self.evaluate_block(statements)?;
+                        match flow {
+                            ControlFlow::Break => break,
+                            ControlFlow::Continue => continue,
+                            ControlFlow::Normal => {}
+                        }
+                    } else {
+                        self.evaluate(body)?;
                     }
                 }
                 Ok(Value::None)
             }
             Expr::For { variable, iterable, body } => {
                 let iterable_val = self.evaluate(iterable)?;
-                
-                match iterable_val {
-                    Value::Array(arr) => {
-                        // Save the loop variable's original value (if it exists)
-                        let old_loop_var = self.environment.get(variable).cloned();
-                        
-                        // Iterate over array
-                        for item in arr {
-                            // Set loop variable for this iteration
-                            self.environment.insert(variable.clone(), item);
-                            
-                            // Execute loop body - handle break/continue
-                            let body_result = self.evaluate_block_with_control_flow(body);
-                            match body_result {
-                                Ok(ControlFlow::Break) => break,
-                                Ok(ControlFlow::Continue) => continue,
-                                Ok(ControlFlow::Normal) => {},
-                                Err(e) => {
-                                    // Restore loop variable before returning error
-                                    if let Some(old_val) = old_loop_var {
-                                        self.environment.insert(variable.clone(), old_val);
-                                    } else {
-                                        self.environment.remove(variable);
-                                    }
-                                    return Err(e);
-                                }
-                            }
+                let values = match iterable_val {
+                    Value::Array(arr) => arr,
+                    Value::String(s) => s.chars().map(|c| Value::String(c.to_string())).collect(),
+                    _ => return Err(TogError::TypeError("Expected iterable in for loop".to_string(), None)),
+                };
+
+                for val in values {
+                    let old_val = self.environment.borrow().get(variable).ok();
+                    self.environment.borrow_mut().define(variable.clone(), val);
+                    
+                    if let Expr::Block(statements) = body.as_ref() {
+                        let (_, flow) = self.evaluate_block(statements)?;
+                        match flow {
+                            ControlFlow::Break => break,
+                            ControlFlow::Continue => continue,
+                            ControlFlow::Normal => {}
                         }
-                        
-                        // Restore or remove loop variable
-                        if let Some(old_val) = old_loop_var {
-                            self.environment.insert(variable.clone(), old_val);
-                        } else {
-                            self.environment.remove(variable);
-                        }
-                        Ok(Value::None)
+                    } else {
+                        self.evaluate(body)?;
                     }
-                    Value::String(s) => {
-                        // Save the loop variable's original value (if it exists)
-                        let old_loop_var = self.environment.get(variable).cloned();
-                        
-                        for ch in s.chars() {
-                            self.environment.insert(variable.clone(), Value::String(ch.to_string()));
-                            
-                            // Execute loop body - handle break/continue
-                            let body_result = self.evaluate_block_with_control_flow(body);
-                            match body_result {
-                                Ok(ControlFlow::Break) => break,
-                                Ok(ControlFlow::Continue) => continue,
-                                Ok(ControlFlow::Normal) => {},
-                                Err(e) => {
-                                    // Restore loop variable before returning error
-                                    if let Some(old_val) = old_loop_var {
-                                        self.environment.insert(variable.clone(), old_val);
-                                    } else {
-                                        self.environment.remove(variable);
-                                    }
-                                    return Err(e);
-                                }
-                            }
-                        }
-                        
-                        // Restore or remove loop variable
-                        if let Some(old_val) = old_loop_var {
-                            self.environment.insert(variable.clone(), old_val);
-                        } else {
-                            self.environment.remove(variable);
-                        }
-                        Ok(Value::None)
+
+                    if let Some(old) = old_val {
+                        self.environment.borrow_mut().assign(variable, old)?;
+                    } else {
+                        self.environment.borrow_mut().remove(variable);
                     }
-                    _ => Err(TogError::RuntimeError(
-                        format!("Cannot iterate over {:?}, expected array or string", iterable_val),
-                        None
-                    ))
                 }
+                Ok(Value::None)
             }
             Expr::Match { expr, arms } => {
                 let value = self.evaluate(expr)?;
@@ -494,14 +448,14 @@ impl Interpreter {
                     if self.match_pattern(&arm.pattern, &value)? {
                         // Bind pattern variables to the matched value
                         if let Pattern::Variable(var_name) = &arm.pattern {
-                            let old_val = self.environment.get(var_name).cloned();
-                            self.environment.insert(var_name.clone(), value.clone());
+                            let old_val = self.environment.borrow().get(var_name).ok();
+                            self.environment.borrow_mut().define(var_name.clone(), value.clone());
                             let result = self.evaluate(&arm.body);
                             // Restore old value if it existed
                             if let Some(old) = old_val {
-                                self.environment.insert(var_name.clone(), old);
+                                self.environment.borrow_mut().assign(&var_name, old)?;
                             } else {
-                                self.environment.remove(var_name);
+                                self.environment.borrow_mut().remove(var_name);
                             }
                             return result;
                         }
@@ -513,15 +467,16 @@ impl Interpreter {
                     None
                 ))
             }
-            Expr::Function { name, params, body, .. } => {
+            Expr::Function { name, params, return_type: _, body } => {
                 let func_value = Value::Function {
                     name: name.clone(),
                     params: params.clone(),
-                    body: *body.clone(),
+                    body: Rc::new(*body.clone()),
+                    closure: Rc::clone(&self.environment), // Capture the current environment
                     bound_self: None,
                 };
                 // Store function in environment
-                self.environment.insert(name.clone(), func_value.clone());
+                self.environment.borrow_mut().define(name.clone(), func_value.clone());
                 Ok(func_value)
             }
             Expr::Index { array, index } => {
@@ -571,7 +526,7 @@ impl Interpreter {
     fn assign_value_into(&mut self, target: &Expr, replacement: Value) -> Result<(), TogError> {
         match target {
             Expr::Variable(name) => {
-                self.environment.insert(name.clone(), replacement);
+                self.environment.borrow_mut().assign(name, replacement)?;
                 Ok(())
             }
             Expr::FieldAccess { object, field } => {
@@ -700,8 +655,8 @@ fn is_truthy(value: &Value) -> bool {
 
 fn value_to_string(value: &Value) -> String {
     match value {
-        Value::Int(n) => n.to_string(),
-        Value::Float(n) => n.to_string(),
+        Value::Int(i) => i.to_string(),
+        Value::Float(f) => f.to_string(),
         Value::String(s) => s.clone(),
         Value::Bool(b) => b.to_string(),
         Value::Array(arr) => {
@@ -709,13 +664,13 @@ fn value_to_string(value: &Value) -> String {
             format!("[{}]", elems.join(", "))
         }
         Value::Struct { name, fields } => {
-            let mut parts: Vec<String> = Vec::new();
+            let mut parts = Vec::new();
             for (k, v) in fields {
                 parts.push(format!("{}: {}", k, value_to_string(v)));
             }
             format!("{} {{ {} }}", name, parts.join(", "))
         }
-        Value::Function { name, .. } => format!("<function {}>", name),
+        Value::Function { name, .. } => format!("<fn {}>", name),
         Value::None => "none".to_string(),
     }
 }

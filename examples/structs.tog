@@ -1,0 +1,20 @@
+// Example for structs and methods in TOG
+
+struct Point {
+    x: int,
+    y: int,
+
+    fn sum(self) -> int {
+        self.x + self.y
+    }
+}
+
+fn main() {
+    let p = Point { x: 10, y: 20 }
+    print("Point is:")
+    print(p)
+    
+    let s = p.sum()
+    print("Sum of fields is:")
+    print(s)
+}

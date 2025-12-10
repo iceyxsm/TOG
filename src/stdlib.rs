@@ -5,8 +5,8 @@ use std::fs;
 use std::path::Path;
 
 pub fn register_builtins(_interpreter: &mut Interpreter) {
-    // Built-in functions will be registered here
-    // For now, print is handled directly in the interpreter
+    // Built-in functions are now dynamically called, no need to register them beforehand.
+    // This function can be used in the future if we need eager registration.
 }
 
 pub fn call_builtin(name: &str, args: &[Value]) -> Result<Value, TogError> {

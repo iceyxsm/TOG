@@ -8,7 +8,7 @@
 // 5. Memory optimizations
 
 use crate::compiler::ir::*;
-use crate::compiler::codegen::{TypeEnvironment, is_numeric_expression};
+use crate::compiler::codegen::{TypeEnvironment};
 use crate::error::TogError;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

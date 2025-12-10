@@ -36,68 +36,73 @@ impl Parser {
     }
 
     fn struct_declaration(&mut self) -> Result<Stmt, TogError> {
-        // struct Name { field: Type, fn method(...) { ... } }
         let name = self.consume_identifier()?;
         self.consume(&Token::LeftBrace, "Expected '{' after struct name")?;
         let mut fields = Vec::new();
         let mut methods = Vec::new();
-        while !self.check(&Token::RightBrace) && !self.is_at_end() {
-            if self.match_token(&[Token::Keyword(Keyword::Fn)]) {
-                // Method declaration inside struct
-                let method_name = self.consume_identifier()?;
-                self.consume(&Token::LeftParen, "Expected '(' after method name")?;
-                let mut params = Vec::new();
-                if !self.check(&Token::RightParen) {
-                    loop {
-                        let param_name = self.consume_identifier()?;
-                        let param_type = if self.match_token(&[Token::Colon]) {
-                            Some(self.parse_type()?)
-                        } else {
-                            None
-                        };
-                        params.push(Param {
-                            name: param_name,
-                            type_annotation: param_type,
-                        });
-                        
-                        if !self.match_token(&[Token::Comma]) {
-                            break;
-                        }
-                    }
-                }
-                self.consume(&Token::RightParen, "Expected ')' after parameters")?;
-                
-                let return_type = if self.match_token(&[Token::Arrow]) {
-                    Some(self.parse_type()?)
-                } else {
-                    None
-                };
-                
-                // Method body
-                self.consume(&Token::LeftBrace, "Expected '{' after method signature")?;
-                let body = self.block_with_brace_consumed()?;
-                
-                methods.push(MethodDecl {
-                    name: method_name,
-                    params,
-                    return_type,
-                    body,
-                });
-            } else {
-                // Field declaration
-                let field_name = self.consume_identifier()?;
-                let field_type = if self.match_token(&[Token::Colon]) {
-                    Some(self.parse_type()?)
-                } else {
-                    None
-                };
-                fields.push((field_name, field_type));
-                // Optional comma between fields
-                let _ = self.match_token(&[Token::Comma]);
+
+        // Parse fields
+        while !self.check(&Token::RightBrace) && !self.check(&Token::Keyword(Keyword::Fn)) && !self.is_at_end() {
+            let field_name = self.consume_identifier()?;
+            self.consume(&Token::Colon, "Expected ':' after field name")?;
+            let field_type = self.parse_type()?;
+            fields.push((field_name, Some(field_type)));
+
+            // If there's no comma, it must be the end of fields (or start of methods/end of struct)
+            if !self.match_token(&[Token::Comma]) {
+                break;
             }
         }
+
+        // Now, parse methods
+        while self.match_token(&[Token::Keyword(Keyword::Fn)]) {
+            let method_name = self.consume_identifier()?;
+            self.consume(&Token::LeftParen, "Expected '(' after method name")?;
+            let mut params = Vec::new();
+            if !self.check(&Token::RightParen) {
+                loop {
+                    let param_name = self.consume_identifier()?;
+                    let param_type = if self.match_token(&[Token::Colon]) {
+                        Some(self.parse_type()?)
+                    } else {
+                        None
+                    };
+                    params.push(Param {
+                        name: param_name,
+                        type_annotation: param_type,
+                    });
+                    
+                    if !self.match_token(&[Token::Comma]) {
+                        break;
+                    }
+                }
+            }
+            self.consume(&Token::RightParen, "Expected ')' after parameters")?;
+            
+            let return_type = if self.match_token(&[Token::Arrow]) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            
+            self.consume(&Token::LeftBrace, "Expected '{' after method signature")?;
+            let body = self.block_with_brace_consumed()?;
+            
+            methods.push(MethodDecl {
+                name: method_name,
+                params,
+                return_type,
+                body,
+            });
+        }
+
         self.consume(&Token::RightBrace, "Expected '}' after struct body")?;
-        Ok(Stmt::StructDef { name, fields, methods })
+
+        Ok(Stmt::StructDef {
+            name,
+            fields,
+            methods,
+        })
     }
     
     fn variable_declaration(&mut self) -> Result<Stmt, TogError> {
@@ -459,10 +464,6 @@ impl Parser {
     }
     
     fn unary(&mut self) -> Result<Expr, TogError> {
-        if self.match_token(&[Token::Keyword(Keyword::Match)]) {
-            return self.match_expression();
-        }
-        
         if self.match_token(&[Token::Not, Token::Minus]) {
             let op = match self.previous().clone() {
                 Token::Not => UnaryOp::Not,
@@ -480,7 +481,11 @@ impl Parser {
     }
     
     fn match_expression(&mut self) -> Result<Expr, TogError> {
-        let expr = Box::new(self.expression()?);
+        // Note: match keyword was already consumed if called from statement()
+        // But if called from unary(), it was also consumed
+        // Parse the expression being matched (use or() to avoid recursion)
+        let expr = Box::new(self.or()?);
+
         self.consume(&Token::LeftBrace, "Expected '{' after match expression")?;
         
         let mut arms = Vec::new();
@@ -592,70 +597,63 @@ impl Parser {
     }
     
     fn primary(&mut self) -> Result<Expr, TogError> {
-        if self.check(&Token::Bool(true)) {
-            self.advance();
-            return Ok(Expr::Literal(Literal::Bool(true)));
-        }
-        if self.check(&Token::Bool(false)) {
-            self.advance();
-            return Ok(Expr::Literal(Literal::Bool(false)));
-        }
         if self.match_token(&[Token::Keyword(Keyword::None)]) {
             return Ok(Expr::Literal(Literal::None));
         }
-        if let Token::Int(val) = self.peek() {
-            let val = *val;
-            self.advance();
-            return Ok(Expr::Literal(Literal::Int(val)));
+        if self.match_token(&[Token::Keyword(Keyword::Match)]) {
+            return self.match_expression();
         }
-        if let Token::Float(val) = self.peek() {
-            let val = *val;
-            self.advance();
-            return Ok(Expr::Literal(Literal::Float(val)));
-        }
-        if let Token::String(val) = self.peek() {
-            let val = val.clone();
-            self.advance();
-            return Ok(Expr::Literal(Literal::String(val)));
-        }
-        if self.match_token(&[Token::LeftBracket]) {
-            return self.array();
-        }
-        if self.match_token(&[Token::LeftParen]) {
-            let expr = self.expression()?;
-            self.consume(&Token::RightParen, "Expected ')' after expression")?;
-            return Ok(expr);
-        }
-        // print is now a function, treat it as an identifier
-        if !self.is_at_end() {
-            if let Token::Keyword(Keyword::Print) = self.peek() {
-                self.advance();
-                return Ok(Expr::Variable("print".to_string()));
-            }
-            if let Token::Identifier(name) = self.peek() {
-                let name = name.clone();
-                // Look ahead for struct literal: Identifier { ... }
-                if self.current + 1 < self.tokens.len() {
-                    if matches!(self.tokens[self.current + 1], Token::LeftBrace) {
-                        // consume identifier
-                        self.advance();
-                        self.consume(&Token::LeftBrace, "Expected '{' after struct name")?;
-                        let mut fields = Vec::new();
-                        while !self.check(&Token::RightBrace) && !self.is_at_end() {
-                            let field_name = self.consume_identifier()?;
-                            self.consume(&Token::Colon, "Expected ':' after field name")?;
-                            let value_expr = self.expression()?;
-                            fields.push((field_name, value_expr));
-                            if !self.match_token(&[Token::Comma]) {
-                                break;
-                            }
-                        }
-                        self.consume(&Token::RightBrace, "Expected '}' after struct literal")?;
-                        return Ok(Expr::StructLiteral { name, fields });
+
+        if let Some(token) = self.tokens.get(self.current) {
+            match token.clone() {
+                Token::Int(val) => {
+                    self.advance();
+                    return Ok(Expr::Literal(Literal::Int(val)));
+                },
+                Token::Float(val) => {
+                    self.advance();
+                    return Ok(Expr::Literal(Literal::Float(val)));
+                },
+                Token::String(val) => {
+                    self.advance();
+                    return Ok(Expr::Literal(Literal::String(val)));
+                },
+                Token::InterpolatedString(val) => {
+                    self.advance();
+                    return Ok(Expr::Literal(Literal::String(val)));
+                },
+                Token::Bool(val) => {
+                    self.advance();
+                    return Ok(Expr::Literal(Literal::Bool(val)));
+                },
+                Token::Identifier(name) => {
+                    // Check for struct literal: Point { ... }
+                    if self.check_ahead(1, &Token::LeftBrace) {
+                        return self.struct_literal();
                     }
-                }
-                self.advance();
-                return Ok(Expr::Variable(name));
+
+                    if name == "_" {
+                        // A wildcard `_` is not a valid expression on its own.
+                        // It's only valid as a pattern in a match arm.
+                        return Err(TogError::ParseError("Wildcard `_` can only be used as a pattern in a match arm.".to_string(), 0, 0));
+                    } else {
+                        self.advance();
+                        return Ok(Expr::Variable(name.clone()));
+                    }
+                },
+                Token::LeftBracket => {
+                    self.advance(); // consume '['
+                    let elements = self.array()?;
+                    self.consume(&Token::RightBracket, "Expected ']' after array")?;
+                    return Ok(elements);
+                },
+                Token::LeftParen => {
+                    self.advance(); // consume '('
+                    let expr = self.expression()?;
+                    self.consume(&Token::RightParen, "Expected ')' after expression")?;
+                    return Ok(expr);
+                },
+                _ => {}
             }
         }
         
@@ -682,6 +680,24 @@ impl Parser {
         Ok(Expr::Literal(Literal::Array(elements)))
     }
     
+    fn struct_literal(&mut self) -> Result<Expr, TogError> {
+        let name = self.consume_identifier()?;
+        self.consume(&Token::LeftBrace, "Expected '{' after struct name")?;
+        let mut fields = Vec::new();
+        while !self.check(&Token::RightBrace) && !self.is_at_end() {
+            let field_name = self.consume_identifier()?;
+            self.consume(&Token::Colon, "Expected ':' after field name in struct literal")?;
+            let field_value = self.expression()?;
+            fields.push((field_name, field_value));
+            if !self.match_token(&[Token::Comma]) {
+                break;
+            }
+        }
+        self.consume(&Token::RightBrace, "Expected '}' after struct literal")?;
+
+        Ok(Expr::StructLiteral { name, fields })
+    }
+
     // Helper methods
     fn match_token(&mut self, tokens: &[Token]) -> bool {
         for token in tokens {
@@ -723,6 +739,21 @@ impl Parser {
         matches!(self.peek(), Token::Eof)
     }
     
+    fn check_ahead(&self, distance: usize, token: &Token) -> bool {
+        if self.current + distance >= self.tokens.len() {
+            return false;
+        }
+        let future_token = &self.tokens[self.current + distance];
+        match (token, future_token) {
+            (Token::Int(_), Token::Int(_)) => true,
+            (Token::Float(_), Token::Float(_)) => true,
+            (Token::String(_), Token::String(_)) => true,
+            (Token::InterpolatedString(_), Token::InterpolatedString(_)) => true,
+            (Token::Identifier(_), Token::Identifier(_)) => true,
+            _ => token == future_token,
+        }
+    }
+
     fn peek(&self) -> &Token {
         if self.current >= self.tokens.len() {
             &self.tokens[self.tokens.len() - 1] // Return last token (should be Eof)
