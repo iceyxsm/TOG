@@ -1,42 +1,42 @@
 # TOG Programming Language
 
-**TOG** - The Optimal Language: Faster than Numba, Better than Rust, More Powerful than C.
+**TOG** - The Optimal Language: A modern programming language combining performance, safety, and simplicity.
 
 ## Philosophy
 
-TOG aims to be:
-- **Faster than Numba** - JIT + AOT compilation with SIMD/GPU support
-- **Better than Rust** - Simpler ownership, better ergonomics, faster compile times
-- **More powerful than C** - Memory safety, zero-cost abstractions, modern features
-- **Simpler than Python** - Clean syntax, auto-return, no boilerplate
+TOG aims to provide:
+- **High Performance** - JIT + AOT compilation with SIMD/GPU support
+- **Memory Safety** - Simpler ownership model, better ergonomics, fast compile times
+- **Power & Control** - Memory safety, zero-cost abstractions, modern features
+- **Simplicity** - Clean syntax, auto-return, minimal boilerplate
 
 ## Key Features
 
-### Performance (Faster than Numba)
+### Performance
 - **Multi-tier compilation** - JIT for development, AOT for production
 - **SIMD/vectorization** - Automatic CPU vectorization
 - **GPU compute support** - CUDA/OpenCL for parallel workloads
 - **Profile-guided optimization** - Learn from runtime behavior
 - **Zero-cost abstractions** - Compile away high-level features
 
-### Safety & Ergonomics (Better than Rust)
+### Safety & Ergonomics
 - **Simpler ownership** - Automatic memory management without GC
 - **Gradual typing** - Start dynamic, add types as needed
-- **Better error messages** - Clear, actionable diagnostics
-- **Faster compile times** - Incremental compilation
+- **Clear error messages** - Actionable diagnostics
+- **Fast compile times** - Incremental compilation
 - **Hot reload** - Development with instant feedback
 
-### Power (More powerful than C)
+### Power & Control
 - **Memory safety** - No segfaults, no use-after-free
 - **Modern abstractions** - Without performance cost
-- **Inline assembly** - When you need C-level control
+- **Inline assembly** - When you need low-level control
 - **Custom allocators** - Arena, pool, stack allocators
-- **Zero-overhead abstractions** - High-level code, C-level performance
+- **Zero-overhead abstractions** - High-level code, low-level performance
 
 ## Quick Start
 
 ```tog
-// Hello World - Simpler than Python!
+// Hello World
 fn main() {
     print("Hello, TOG!")
 }
@@ -67,22 +67,23 @@ match value {
 }
 ```
 
-## Why TOG is Simpler than Python
+## Why TOG
 
 1. **No return needed** - Functions auto-return the last expression
 2. **print is a function** - Consistent with everything else
 3. **Auto type conversion** - Numbers auto-convert to strings when needed
-4. **Less boilerplate** - No `if __name__ == "__main__"` needed
+4. **Less boilerplate** - Minimal setup required
 5. **Cleaner syntax** - Fewer special cases and exceptions
-6. **Better defaults** - Everything just works intuitively
+6. **Intuitive defaults** - Everything just works
 
-## Performance Targets
+## Performance
 
-TOG is designed to outperform:
+TOG is designed for high performance:
 
-- **Numba**: Better JIT compilation with automatic SIMD
-- **Rust**: Faster compile times, simpler ownership
-- **C**: Memory safety with equal or better performance
+- **JIT compilation** - Fast development iteration
+- **AOT compilation** - Maximum production performance
+- **SIMD support** - Automatic CPU vectorization
+- **Memory safety** - Without performance penalties
 
 See [docs/performance.md](docs/performance.md) for detailed architecture.
 
