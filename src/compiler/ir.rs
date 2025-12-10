@@ -94,6 +94,7 @@ pub enum IrValue {
     Float(f64),
     String(String),
     Bool(bool),
+    #[allow(dead_code)] // Will be used for array literal optimization
     Array(Vec<IrExpression>),
     None,
 }

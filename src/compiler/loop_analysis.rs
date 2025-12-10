@@ -11,6 +11,7 @@ use crate::compiler::ir::*;
 use crate::error::TogError;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // Will be used for SIMD vectorization
 pub struct LoopInfo {
     pub is_vectorizable: bool,
     pub loop_type: LoopType,
@@ -19,6 +20,7 @@ pub struct LoopInfo {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // Will be used for loop optimization classification
 pub enum LoopType {
     SimpleIteration,  // for i in array
     IndexedLoop,     // for i in 0..n
@@ -211,6 +213,7 @@ fn has_element_wise_operations(statements: &[IrStatement]) -> bool {
 }
 
 // Future: Generate SIMD code for vectorizable loops
+#[allow(dead_code)] // Will be used for SIMD code generation
 pub fn generate_simd_code(_loop_info: &LoopInfo, _body: &IrBlock) -> Result<IrBlock, TogError> {
     // TODO: Transform loop body to use SIMD instructions
     // This would:

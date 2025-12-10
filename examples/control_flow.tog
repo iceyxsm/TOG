@@ -1,26 +1,89 @@
 // Control flow in TOG
+
 fn main() {
-    let x = 10
+    print("=== Control Flow Examples ===")
     
     // If-else
+    print("If-else:")
+    let x = 10
     if x > 5 {
         print("x is greater than 5")
     } else {
         print("x is not greater than 5")
     }
     
-    // While loop
-    let i = 0
-    while i < 5 {
-        print(to_string(i))
-        i = i + 1
+    // Nested if
+    print("Nested if:")
+    let age = 25
+    if age >= 18 {
+        if age >= 21 {
+            print("Adult (21+)")
+        } else {
+            print("Adult (18-20)")
+        }
+    } else {
+        print("Minor")
     }
     
-    // Pattern matching
-    match x {
-        1 => print("One"),
-        10 => print("Ten"),
-        _ => print("Other")
+    // While loop
+    print("While loop (countdown from 5):")
+    let count = 5
+    while count > 0 {
+        print(count)
+        count = count - 1
     }
+    
+    // For loop with range
+    print("For loop with range:")
+    for i in range(1, 6) {
+        print(i)
+    }
+    
+    // For loop with array
+    print("For loop with array:")
+    let fruits = ["apple", "banana", "cherry"]
+    for fruit in fruits {
+        print(fruit)
+    }
+    
+    // Break statement
+    print("Break example:")
+    for i in range(1, 11) {
+        if i == 5 {
+            print("Breaking at 5")
+            break
+        }
+        print(i)
+    }
+    
+    // Continue statement
+    print("Continue example (skip even numbers):")
+    for i in range(1, 11) {
+        if i % 2 == 0 {
+            continue
+        }
+        print(i)
+    }
+    
+    // Match expression
+    print("Match expression:")
+    let value = 42
+    match value {
+        0 => print("Zero")
+        42 => print("The answer!")
+        _ => print("Something else")
+    }
+    
+    // Boolean operators
+    print("Boolean AND:")
+    print(true and true)
+    print(true and false)
+    
+    print("Boolean OR:")
+    print(true or false)
+    print(false or false)
+    
+    print("Boolean NOT:")
+    print(not true)
+    print(not false)
 }
-

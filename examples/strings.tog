@@ -1,0 +1,57 @@
+// String operations in TOG
+
+fn main() {
+    print("=== String Examples ===")
+    
+    // String literals
+    let greeting = "Hello, TOG!"
+    print(greeting)
+    
+    // String length
+    print("Length of greeting:")
+    print(len(greeting))
+    
+    // String concatenation
+    print("Concatenation:")
+    print("Hello, " + "World!")
+    
+    // String with numbers
+    print("String + number:")
+    print("Count: " + 42)
+    
+    // String indexing
+    print("First character:")
+    print(greeting[0])
+    
+    // String iteration
+    print("Iterating through string:")
+    for char in "TOG" {
+        print(char)
+    }
+    
+    // String methods
+    print("Split by comma:")
+    let text = "apple,banana,cherry"
+    let parts = split(text, ",")
+    print(parts)
+    
+    print("Join with space:")
+    let words = ["Hello", "from", "TOG"]
+    let sentence = join(words, " ")
+    print(sentence)
+    
+    print("Contains check:")
+    print(contains("Hello World", "World"))
+    print(contains("Hello World", "Goodbye"))
+    
+    print("Substring:")
+    let sub = substring("Hello World", 0, 5)
+    print(sub)
+    
+    // Multi-line strings
+    print("Multi-line:")
+    print("Line 1")
+    print("Line 2")
+    print("Line 3")
+}
+

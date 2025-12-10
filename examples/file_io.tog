@@ -1,0 +1,39 @@
+// File I/O operations in TOG
+
+fn main() {
+    print("=== File I/O Examples ===")
+    
+    // Write to file
+    print("Writing to file...")
+    let content = "Hello from TOG!\nThis is a test file.\nLine 3."
+    write_file("test_output.txt", content)
+    print("File written successfully!")
+    
+    // Read from file
+    print("Reading from file...")
+    let data = read_file("test_output.txt")
+    print("File contents:")
+    print(data)
+    
+    // Write array data
+    print("Writing array data...")
+    let numbers = [1, 2, 3, 4, 5]
+    let numbers_str = to_string(numbers)
+    write_file("numbers.txt", numbers_str)
+    print("Array written to file!")
+    
+    // Append-like behavior (read, modify, write)
+    print("Appending to file...")
+    let existing = read_file("test_output.txt")
+    let appended = existing + "\nAppended line!"
+    write_file("test_output.txt", appended)
+    print("Content appended!")
+    
+    // Read back the appended content
+    let final_content = read_file("test_output.txt")
+    print("Final file contents:")
+    print(final_content)
+    
+    print("File I/O operations completed!")
+}
+

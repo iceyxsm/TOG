@@ -644,7 +644,7 @@ impl Parser {
                 Token::LeftBracket => {
                     self.advance(); // consume '['
                     let elements = self.array()?;
-                    self.consume(&Token::RightBracket, "Expected ']' after array")?;
+                    // array() already consumes the ']'
                     return Ok(elements);
                 },
                 Token::LeftParen => {

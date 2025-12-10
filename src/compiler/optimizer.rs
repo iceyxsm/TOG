@@ -12,6 +12,7 @@ use crate::compiler::codegen::{TypeEnvironment};
 use crate::error::TogError;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(dead_code)] // All levels will be used when optimization is fully implemented
 pub enum OptimizationLevel {
     None,      // -O0: No optimizations
     Basic,     // -O1: Basic optimizations
@@ -21,6 +22,7 @@ pub enum OptimizationLevel {
 }
 
 impl OptimizationLevel {
+    #[allow(dead_code)] // Will be used for CLI optimization level parsing
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "0" | "none" => Some(OptimizationLevel::None),

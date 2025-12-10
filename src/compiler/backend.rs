@@ -10,6 +10,7 @@ use crate::compiler::ir::IrProgram;
 use crate::error::TogError;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[allow(dead_code)] // Future backends to be implemented
 pub enum BackendType {
     Interpreter,  // Current interpreter (fallback)
     NativeC,     // Native C code generator (for testing)
@@ -20,8 +21,10 @@ pub enum BackendType {
 }
 
 pub trait Backend: Send + Sync {
+    #[allow(dead_code)] // Will be used for backend identification
     fn name(&self) -> &str;
     fn generate_code(&self, ir: &IrProgram) -> Result<Vec<u8>, TogError>;
+    #[allow(dead_code)] // Will be used for optimization checks
     fn supports_optimization(&self) -> bool;
 }
 

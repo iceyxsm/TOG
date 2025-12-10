@@ -8,20 +8,24 @@ use crate::compiler::ir::*;
 
 // Helper functions for code generation that can be shared across backends
 
+#[allow(dead_code)] // Used for optimization passes
 pub fn get_function_by_name<'a>(program: &'a IrProgram, name: &str) -> Option<&'a IrFunction> {
     program.functions.iter().find(|f| f.name == name)
 }
 
+#[allow(dead_code)] // Used for optimization passes
 pub fn is_builtin_function(name: &str) -> bool {
     matches!(name, "print" | "len" | "to_string")
 }
 
+#[allow(dead_code)] // Used for inlining heuristics
 pub fn estimate_function_size(func: &IrFunction) -> usize {
     // Estimate function size for inlining decisions
     // Simple heuristic: count statements
     count_statements_in_block(&func.body)
 }
 
+#[allow(dead_code)] // Helper for estimate_function_size
 fn count_statements_in_block(block: &IrBlock) -> usize {
     match block {
         IrBlock::Block(statements) => {
@@ -69,20 +73,24 @@ impl TypeEnvironment {
         env
     }
     
+    #[allow(dead_code)] // Used for type-aware optimizations
     pub fn get_variable_type(&self, name: &str) -> Option<&crate::ast::Type> {
         self.variables.get(name)
     }
     
+    #[allow(dead_code)] // Used for type-aware optimizations
     pub fn get_function_type(&self, name: &str) -> Option<&crate::ast::Type> {
         self.functions.get(name)
     }
 }
 
+#[allow(dead_code)] // Used for type inference in optimizations
 pub fn infer_expression_type(expr: &IrExpression, program: &IrProgram) -> Option<crate::ast::Type> {
     let env = TypeEnvironment::from_program(program);
     infer_expression_type_with_env(expr, program, &env)
 }
 
+#[allow(dead_code)] // Used for type inference with environment context
 pub fn infer_expression_type_with_env(
     expr: &IrExpression, 
     program: &IrProgram,
@@ -175,11 +183,13 @@ pub fn infer_expression_type_with_env(
 }
 
 // Check if type is numeric (useful for SIMD detection)
+#[allow(dead_code)] // Used for numeric optimizations
 pub fn is_numeric_type(ty: &crate::ast::Type) -> bool {
     matches!(ty, crate::ast::Type::Int | crate::ast::Type::Float)
 }
 
 // Check if expression is numeric (for vectorization)
+#[allow(dead_code)] // Used for numeric optimizations
 pub fn is_numeric_expression(expr: &IrExpression, program: &IrProgram) -> bool {
     infer_expression_type(expr, program)
         .map(|ty| is_numeric_type(&ty))

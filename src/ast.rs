@@ -149,6 +149,7 @@ pub enum Type {
     Bool,
     Array(Box<Type>),
     Struct(String),
+    #[allow(dead_code)] // Will be used for function type annotations
     Function {
         params: Vec<Type>,
         return_type: Box<Type>,

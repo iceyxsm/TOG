@@ -1,13 +1,49 @@
-// Arrays in TOG
-fn main() {
-    let numbers = [1, 2, 3, 4, 5]
-    let names = ["Alice", "Bob", "Charlie"]
-    
-    print(numbers)
-    print(names)
-    
-    // Array operations (coming soon)
-    let first = numbers[0]
-    print(first)
-}
+// Array operations in TOG
 
+fn main() {
+    print("Array Examples")
+    
+    // Array literals
+    let numbers = [1, 2, 3, 4, 5]
+    print("Array:")
+    print(numbers)
+    
+    // Array length
+    let size = len(numbers)
+    print("Length:")
+    print(size)
+    
+    // Array indexing
+    print("First element:")
+    print(numbers[0])
+    print("Last element:")
+    print(numbers[4])
+    
+    // Array iteration
+    print("Iterating through array:")
+    for num in numbers {
+        print(num)
+    }
+    
+    // Range function
+    print("Range 1 to 5:")
+    for i in range(1, 6) {
+        print(i)
+    }
+    
+    // Array methods
+    print("Pushing element:")
+    let arr = [10, 20, 30]
+    let arr2 = push(arr, 40)
+    print(arr2)
+    
+    print("Popping element:")
+    let arr3 = pop(arr2)
+    print(arr3)
+    
+    print("Reversing array:")
+    let reversed = reverse(numbers)
+    print(reversed)
+    
+    print("Arrays example completed!")
+}

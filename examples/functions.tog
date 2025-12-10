@@ -1,25 +1,89 @@
-// Functions in TOG - Way simpler than Python!
+// Functions in TOG
 
-// No return needed for single expressions!
-fn greet(name) {
-    "Hello, " + name
+// Simple function
+fn greet() {
+    print("Hello from a function!")
 }
 
+// Function with parameters
 fn add(a, b) {
     a + b
 }
 
-// Types are optional - add them when you need them
-fn typed_add(a: int, b: int) -> int {
-    a + b
+// Function with return type annotation
+fn multiply(x: int, y: int) -> int {
+    x * y
+}
+
+// Function that returns early
+fn is_positive(n) {
+    if n > 0 {
+        return true
+    }
+    false
+}
+
+// Recursive function
+fn factorial(n) {
+    if n <= 1 {
+        1
+    } else {
+        n * factorial(n - 1)
+    }
+}
+
+// Function with multiple parameters
+fn describe(name, age, city) {
+    print("Name: " + name)
+    print("Age: " + age)
+    print("City: " + city)
+}
+
+// Higher-order concept (functions as values)
+fn apply_twice(value, increment) {
+    let result = value + increment
+    result + increment
 }
 
 fn main() {
-    // print is a function, not a statement
-    print(greet("TOG"))
-    print(add(10, 20))
-    print(typed_add(5, 15))
+    print("=== Function Examples ===")
     
-    // Auto-convert to strings
-    print("Sum: " + add(7, 8))
+    // Calling simple function
+    print("Calling greet():")
+    greet()
+    
+    // Function with return value
+    print("5 + 3 =")
+    let sum = add(5, 3)
+    print(sum)
+    
+    // Function with type annotations
+    print("4 * 7 =")
+    let product = multiply(4, 7)
+    print(product)
+    
+    // Boolean function
+    print("Is 10 positive?")
+    print(is_positive(10))
+    print("Is -5 positive?")
+    print(is_positive(-5))
+    
+    // Recursive function
+    print("Factorial of 5:")
+    let fact = factorial(5)
+    print(fact)
+    
+    // Multiple parameters
+    print("Describe person:")
+    describe("Alice", 30, "New York")
+    
+    // Apply function
+    print("Apply twice (10 + 5 + 5):")
+    let result = apply_twice(10, 5)
+    print(result)
+    
+    // Auto-return (last expression)
+    print("Auto-return example:")
+    let double = fn(x) { x * 2 }
+    print(double(21))
 }

@@ -4,6 +4,7 @@ use crate::error::TogError;
 use std::fs;
 use std::path::Path;
 
+#[allow(dead_code)] // Reserved for future eager registration of built-ins
 pub fn register_builtins(_interpreter: &mut Interpreter) {
     // Built-in functions are now dynamically called, no need to register them beforehand.
     // This function can be used in the future if we need eager registration.

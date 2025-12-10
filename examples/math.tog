@@ -1,0 +1,66 @@
+// Math operations in TOG
+
+fn main() {
+    print("=== Math Examples ===")
+    
+    // Basic arithmetic
+    print("Addition: 10 + 5")
+    print(10 + 5)
+    
+    print("Subtraction: 10 - 5")
+    print(10 - 5)
+    
+    print("Multiplication: 10 * 5")
+    print(10 * 5)
+    
+    print("Division: 10 / 5")
+    print(10 / 5)
+    
+    print("Modulo: 10 % 3")
+    print(10 % 3)
+    
+    // Float operations
+    print("Float addition: 3.14 + 2.86")
+    print(3.14 + 2.86)
+    
+    print("Float division: 10.0 / 3.0")
+    print(10.0 / 3.0)
+    
+    // Math functions
+    print("Min of 5 and 10:")
+    print(min(5, 10))
+    
+    print("Max of 5 and 10:")
+    print(max(5, 10))
+    
+    print("Absolute value of -42:")
+    print(abs(-42))
+    
+    print("Square root of 16:")
+    print(sqrt(16.0))
+    
+    print("Power: 2^8")
+    print(pow(2.0, 8.0))
+    
+    // Comparison operators
+    print("5 < 10:")
+    print(5 < 10)
+    
+    print("10 > 5:")
+    print(10 > 5)
+    
+    print("5 == 5:")
+    print(5 == 5)
+    
+    print("5 != 10:")
+    print(5 != 10)
+    
+    // Complex expressions
+    print("Complex: (10 + 5) * 2 - 3")
+    print((10 + 5) * 2 - 3)
+    
+    // Negative numbers
+    print("Negative: -10 + 5")
+    print(-10 + 5)
+}
+
