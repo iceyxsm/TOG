@@ -259,6 +259,7 @@ fn type_to_c_type(ty: &crate::ast::Type) -> String {
         crate::ast::Type::Function { .. } => "void*".to_string(), // Function pointer
         crate::ast::Type::Infer => "int64_t".to_string(), // Default
         crate::ast::Type::Struct(_) => "void*".to_string(), // Placeholder for structs
+        crate::ast::Type::Enum(_) => "int64_t".to_string(), // Enums as integers
     }
 }
 

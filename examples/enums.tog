@@ -1,0 +1,69 @@
+// Enum examples in TOG
+// Demonstrates enum definitions and pattern matching
+
+enum Status {
+    Success,
+    Error,
+    Pending
+}
+
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+fn main() {
+    print("=== Enum Examples ===")
+    print("")
+    
+    // Simple enums without data
+    print("Simple enum variants:")
+    let status1 = Status::Success
+    let status2 = Status::Error
+    let status3 = Status::Pending
+    
+    print("Status 1:")
+    print(status1)
+    print("Status 2:")
+    print(status2)
+    print("Status 3:")
+    print(status3)
+    
+    // Enums with associated data
+    print("")
+    print("Enums with data:")
+    let result_ok = Result::Ok(42)
+    let result_err = Result::Err("Something went wrong")
+    
+    print("Success result:")
+    print(result_ok)
+    print("Error result:")
+    print(result_err)
+    
+    // Pattern matching with enums
+    print("")
+    print("Pattern matching:")
+    
+    match status1 {
+        Status::Success => print("Operation succeeded!"),
+        Status::Error => print("Operation failed!"),
+        Status::Pending => print("Operation pending..."),
+        _ => print("Unknown status")
+    }
+    
+    match result_ok {
+        Result::Ok(value) => {
+            print("Got value:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Got error:")
+            print(msg)
+        },
+        _ => print("Unknown result")
+    }
+    
+    print("")
+    print("Enum examples completed!")
+}
+

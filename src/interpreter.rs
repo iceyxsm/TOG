@@ -67,6 +67,11 @@ pub enum Value {
         name: String,
         fields: HashMap<String, Value>,
     },
+    Enum {
+        enum_name: String,
+        variant_name: String,
+        data: Option<Box<Value>>,
+    },
     Function {
         name: String,
         params: Vec<Param>,
@@ -88,6 +93,10 @@ impl PartialEq for Value {
             (Value::Struct { name: n1, fields: f1 }, Value::Struct { name: n2, fields: f2 }) => {
                 n1 == n2 && f1 == f2
             }
+            (Value::Enum { enum_name: e1, variant_name: v1, data: d1 }, 
+             Value::Enum { enum_name: e2, variant_name: v2, data: d2 }) => {
+                e1 == e2 && v1 == v2 && d1 == d2
+            }
             // Functions are compared by reference/pointer, not content.
             // For simplicity here, we'll consider them unequal unless we add IDs.
             (Value::Function { .. }, Value::Function { .. }) => false,
@@ -101,6 +110,7 @@ impl PartialEq for Value {
 pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
     struct_defs: HashMap<String, (Vec<(String, Option<Type>)>, Vec<MethodDecl>)>,
+    enum_defs: HashMap<String, Vec<EnumVariant>>,
 }
 
 impl Interpreter {
@@ -108,6 +118,7 @@ impl Interpreter {
         Self {
             environment: Rc::new(RefCell::new(Environment::new(None))),
             struct_defs: HashMap::new(),
+            enum_defs: HashMap::new(),
         }
     }
     
@@ -167,6 +178,17 @@ impl Interpreter {
             }
             Stmt::StructDef { name, fields, methods } => {
                 self.struct_defs.insert(name.clone(), (fields.clone(), methods.clone()));
+                Ok((Value::None, ControlFlow::Normal))
+            }
+            Stmt::EnumDef { name, variants } => {
+                self.enum_defs.insert(name.clone(), variants.clone());
+                // Register enum variants as constructors in the environment
+                for variant in variants {
+                    let _enum_name = name.clone();
+                    let _variant_name = variant.name.clone();
+                    // For now, we'll handle enum construction in the evaluate phase
+                    // Store enum definition for later use
+                }
                 Ok((Value::None, ControlFlow::Normal))
             }
             Stmt::Return(expr) => {
@@ -238,6 +260,28 @@ impl Interpreter {
                 Ok(Value::Struct {
                     name: name.clone(),
                     fields: map,
+                })
+            }
+            Expr::EnumVariant { enum_name, variant_name, data } => {
+                // Validate that the enum exists
+                if !self.enum_defs.contains_key(enum_name) {
+                    return Err(TogError::RuntimeError(
+                        format!("Unknown enum: {}", enum_name),
+                        None
+                    ));
+                }
+                
+                // Evaluate the associated data if present
+                let data_value = if let Some(data_expr) = data {
+                    Some(Box::new(self.evaluate(data_expr)?))
+                } else {
+                    None
+                };
+                
+                Ok(Value::Enum {
+                    enum_name: enum_name.clone(),
+                    variant_name: variant_name.clone(),
+                    data: data_value,
                 })
             }
             Expr::Variable(name) => {
@@ -669,6 +713,13 @@ fn value_to_string(value: &Value) -> String {
                 parts.push(format!("{}: {}", k, value_to_string(v)));
             }
             format!("{} {{ {} }}", name, parts.join(", "))
+        }
+        Value::Enum { enum_name, variant_name, data } => {
+            if let Some(d) = data {
+                format!("{}::{}({})", enum_name, variant_name, value_to_string(d))
+            } else {
+                format!("{}::{}", enum_name, variant_name)
+            }
         }
         Value::Function { name, .. } => format!("<fn {}>", name),
         Value::None => "none".to_string(),

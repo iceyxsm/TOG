@@ -97,6 +97,9 @@ impl TypeChecker {
             Stmt::StructDef { name, fields, methods } => {
                 self.struct_defs.insert(name.clone(), (fields.clone(), methods.clone()));
             }
+            Stmt::EnumDef { .. } => {
+                // Enum definitions - no type checking needed here
+            }
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
                     self.infer_expression_type(expr)?;
@@ -133,6 +136,9 @@ impl TypeChecker {
             }
             Expr::StructLiteral { name, .. } => {
                 Ok(Type::Struct(name.clone()))
+            }
+            Expr::EnumVariant { enum_name, .. } => {
+                Ok(Type::Enum(enum_name.clone()))
             }
             Expr::Variable(name) => {
                 self.environment.get(name)

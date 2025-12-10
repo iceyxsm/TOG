@@ -192,6 +192,12 @@ fn stmt_to_ir(stmt: &Stmt) -> Result<IrStatement, TogError> {
                 None
             ))
         }
+        Stmt::EnumDef { .. } => {
+            Err(TogError::RuntimeError(
+                "Enum definitions not yet supported in IR conversion".to_string(),
+                None
+            ))
+        }
         Stmt::Expr(expr) => {
             match expr {
                 Expr::If { condition, then_branch, else_branch } => {
@@ -278,6 +284,12 @@ fn expr_to_ir_expr(expr: &Expr) -> Result<IrExpression, TogError> {
             // TODO: Implement proper for loop in IR
             Err(TogError::RuntimeError(
                 "For loops not yet implemented in IR conversion".to_string(),
+                None
+            ))
+        }
+        Expr::EnumVariant { .. } => {
+            Err(TogError::RuntimeError(
+                "Enum variants not yet supported in IR codegen".to_string(),
                 None
             ))
         }

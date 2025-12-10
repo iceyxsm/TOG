@@ -52,6 +52,11 @@ pub enum Expr {
         iterable: Box<Expr>,
         body: Box<Expr>,
     },
+    EnumVariant {
+        enum_name: String,
+        variant_name: String,
+        data: Option<Box<Expr>>, // Optional associated data
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,9 +81,19 @@ pub enum Stmt {
         fields: Vec<(String, Option<Type>)>,
         methods: Vec<MethodDecl>,
     },
+    EnumDef {
+        name: String,
+        variants: Vec<EnumVariant>,
+    },
     Return(Option<Expr>),
     Break,
     Continue,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EnumVariant {
+    pub name: String,
+    pub data_type: Option<Type>, // Optional associated data type
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -149,6 +164,7 @@ pub enum Type {
     Bool,
     Array(Box<Type>),
     Struct(String),
+    Enum(String),
     #[allow(dead_code)] // Will be used for function type annotations
     Function {
         params: Vec<Type>,

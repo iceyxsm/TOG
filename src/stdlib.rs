@@ -486,6 +486,222 @@ pub fn call_builtin(name: &str, args: &[Value]) -> Result<Value, TogError> {
             // For now, return a reasonable default
             Ok(Value::Int(1024))
         }
+        "map" => {
+            // map(array, function) - applies function to each element
+            // Note: Function application needs to be handled by interpreter
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("map() expects 2 arguments (array, function), got {}", args.len()),
+                    None
+                ));
+            }
+            // For now, return the array as-is
+            // The interpreter will need to handle function application
+            match &args[0] {
+                Value::Array(_) => Ok(args[0].clone()),
+                _ => Err(TogError::TypeError("map() expects array as first argument".to_string(), None))
+            }
+        }
+        "filter" => {
+            // filter(array, predicate) - keeps elements where predicate is true
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("filter() expects 2 arguments (array, predicate), got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(_) => Ok(args[0].clone()),
+                _ => Err(TogError::TypeError("filter() expects array as first argument".to_string(), None))
+            }
+        }
+        "reduce" => {
+            // reduce(array, initial, function) - reduces array to single value
+            if args.len() != 3 {
+                return Err(TogError::RuntimeError(
+                    format!("reduce() expects 3 arguments (array, initial, function), got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(_) => Ok(args[1].clone()), // Return initial for now
+                _ => Err(TogError::TypeError("reduce() expects array as first argument".to_string(), None))
+            }
+        }
+        "parallel_map" => {
+            // Parallel version of map
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("parallel_map() expects 2 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(_) => Ok(args[0].clone()),
+                _ => Err(TogError::TypeError("parallel_map() expects array".to_string(), None))
+            }
+        }
+        "parallel_filter" => {
+            // Parallel version of filter
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("parallel_filter() expects 2 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(_) => Ok(args[0].clone()),
+                _ => Err(TogError::TypeError("parallel_filter() expects array".to_string(), None))
+            }
+        }
+        "parallel_reduce" => {
+            // Parallel version of reduce
+            if args.len() != 3 {
+                return Err(TogError::RuntimeError(
+                    format!("parallel_reduce() expects 3 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(_) => Ok(args[1].clone()),
+                _ => Err(TogError::TypeError("parallel_reduce() expects array".to_string(), None))
+            }
+        }
+        // Additional array operations
+        "first" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("first() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(arr) => {
+                    if arr.is_empty() {
+                        Err(TogError::RuntimeError("first() called on empty array".to_string(), None))
+                    } else {
+                        Ok(arr[0].clone())
+                    }
+                }
+                _ => Err(TogError::TypeError("first() expects array".to_string(), None))
+            }
+        }
+        "last" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("last() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(arr) => {
+                    if arr.is_empty() {
+                        Err(TogError::RuntimeError("last() called on empty array".to_string(), None))
+                    } else {
+                        Ok(arr[arr.len() - 1].clone())
+                    }
+                }
+                _ => Err(TogError::TypeError("last() expects array".to_string(), None))
+            }
+        }
+        "slice" => {
+            // slice(array, start, end) - returns subarray
+            if args.len() != 3 {
+                return Err(TogError::RuntimeError(
+                    format!("slice() expects 3 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            match (&args[0], &args[1], &args[2]) {
+                (Value::Array(arr), Value::Int(start), Value::Int(end)) => {
+                    let start_idx = (*start).max(0) as usize;
+                    let end_idx = (*end).min(arr.len() as i64) as usize;
+                    if start_idx > end_idx {
+                        return Err(TogError::RuntimeError(
+                            "slice() start index must be <= end index".to_string(),
+                            None
+                        ));
+                    }
+                    Ok(Value::Array(arr[start_idx..end_idx].to_vec()))
+                }
+                _ => Err(TogError::TypeError("slice() expects (array, int, int)".to_string(), None))
+            }
+        }
+        "flatten" => {
+            // flatten(array) - flattens nested arrays one level
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("flatten() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(arr) => {
+                    let mut result = Vec::new();
+                    for item in arr {
+                        match item {
+                            Value::Array(inner) => result.extend_from_slice(inner),
+                            _ => result.push(item.clone()),
+                        }
+                    }
+                    Ok(Value::Array(result))
+                }
+                _ => Err(TogError::TypeError("flatten() expects array".to_string(), None))
+            }
+        }
+        "unique" => {
+            // unique(array) - returns array with duplicates removed
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("unique() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(arr) => {
+                    let mut result = Vec::new();
+                    for item in arr {
+                        if !result.contains(item) {
+                            result.push(item.clone());
+                        }
+                    }
+                    Ok(Value::Array(result))
+                }
+                _ => Err(TogError::TypeError("unique() expects array".to_string(), None))
+            }
+        }
+        "sort" => {
+            // sort(array) - returns sorted array (numeric only for now)
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("sort() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Array(arr) => {
+                    let mut sorted = arr.clone();
+                    // Simple bubble sort for integers
+                    let mut swapped = true;
+                    while swapped {
+                        swapped = false;
+                        for i in 0..sorted.len().saturating_sub(1) {
+                            let should_swap = match (&sorted[i], &sorted[i + 1]) {
+                                (Value::Int(a), Value::Int(b)) => a > b,
+                                (Value::Float(a), Value::Float(b)) => a > b,
+                                _ => false,
+                            };
+                            if should_swap {
+                                sorted.swap(i, i + 1);
+                                swapped = true;
+                            }
+                        }
+                    }
+                    Ok(Value::Array(sorted))
+                }
+                _ => Err(TogError::TypeError("sort() expects array".to_string(), None))
+            }
+        }
         _ => Err(TogError::RuntimeError(
             format!("Unknown builtin function: {}", name),
             None
@@ -509,6 +725,13 @@ fn value_to_string(value: &Value) -> String {
                 parts.push(format!("{}: {}", k, value_to_string(v)));
             }
             format!("{} {{ {} }}", name, parts.join(", "))
+        }
+        Value::Enum { enum_name, variant_name, data } => {
+            if let Some(d) = data {
+                format!("{}::{}({})", enum_name, variant_name, value_to_string(d))
+            } else {
+                format!("{}::{}", enum_name, variant_name)
+            }
         }
         Value::Function { name, .. } => format!("<function {}>", name),
         Value::None => "none".to_string(),

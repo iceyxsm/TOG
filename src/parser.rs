@@ -28,6 +28,8 @@ impl Parser {
             self.variable_declaration()
         } else if self.match_token(&[Token::Keyword(Keyword::Struct)]) {
             self.struct_declaration()
+        } else if self.match_token(&[Token::Keyword(Keyword::Enum)]) {
+            self.enum_declaration()
         } else if self.match_token(&[Token::Keyword(Keyword::Fn)]) {
             self.function_declaration()
         } else {
@@ -103,6 +105,40 @@ impl Parser {
             fields,
             methods,
         })
+    }
+
+    fn enum_declaration(&mut self) -> Result<Stmt, TogError> {
+        let name = self.consume_identifier()?;
+        self.consume(&Token::LeftBrace, "Expected '{' after enum name")?;
+        let mut variants = Vec::new();
+
+        // Parse enum variants
+        while !self.check(&Token::RightBrace) && !self.is_at_end() {
+            let variant_name = self.consume_identifier()?;
+            
+            // Check for associated data type
+            let data_type = if self.match_token(&[Token::LeftParen]) {
+                let ty = self.parse_type()?;
+                self.consume(&Token::RightParen, "Expected ')' after enum variant type")?;
+                Some(ty)
+            } else {
+                None
+            };
+            
+            variants.push(EnumVariant {
+                name: variant_name,
+                data_type,
+            });
+            
+            // Comma is optional for the last variant
+            if !self.match_token(&[Token::Comma]) {
+                break;
+            }
+        }
+
+        self.consume(&Token::RightBrace, "Expected '}' after enum body")?;
+
+        Ok(Stmt::EnumDef { name, variants })
     }
     
     fn variable_declaration(&mut self) -> Result<Stmt, TogError> {
@@ -183,9 +219,12 @@ impl Parser {
             self.consume(&Token::RightBracket, "Expected ']' after array type")?;
             Ok(Type::Array(Box::new(inner_type)))
         } else if let Token::Identifier(name) = self.peek() {
-            // Struct type name
+            // Struct or Enum type name
+            // We can't distinguish here, so we'll treat both as custom types
+            // The type checker will validate later
             let name = name.clone();
             self.advance();
+            // For now, assume it's a struct. The interpreter will handle enums.
             Ok(Type::Struct(name))
         } else {
             Err(TogError::ParseError(

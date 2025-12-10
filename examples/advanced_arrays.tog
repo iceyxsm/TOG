@@ -1,0 +1,111 @@
+// Advanced Array Operations in TOG
+// Demonstrates functional programming and array manipulation
+
+fn main() {
+    print("Advanced Array Operations")
+    print("")
+    
+    // Basic array operations
+    print("=== Basic Operations ===")
+    let numbers = [5, 2, 8, 1, 9, 3, 7, 4, 6]
+    print("Original array:")
+    print(numbers)
+    
+    // First and last
+    print("First element:")
+    print(first(numbers))
+    print("Last element:")
+    print(last(numbers))
+    
+    // Sorting
+    print("")
+    print("=== Sorting ===")
+    let sorted = sort(numbers)
+    print("Sorted array:")
+    print(sorted)
+    
+    // Slicing
+    print("")
+    print("=== Slicing ===")
+    let slice1 = slice(numbers, 2, 5)
+    print("Slice [2:5]:")
+    print(slice1)
+    
+    let slice2 = slice(numbers, 0, 3)
+    print("Slice [0:3]:")
+    print(slice2)
+    
+    // Unique elements
+    print("")
+    print("=== Unique Elements ===")
+    let duplicates = [1, 2, 2, 3, 3, 3, 4, 4, 5]
+    print("Array with duplicates:")
+    print(duplicates)
+    let unique_vals = unique(duplicates)
+    print("Unique values:")
+    print(unique_vals)
+    
+    // Flatten nested arrays
+    print("")
+    print("=== Flatten ===")
+    let nested = [1, 2, 3]
+    print("Array to flatten:")
+    print(nested)
+    let flat = flatten(nested)
+    print("Flattened:")
+    print(flat)
+    
+    // Combining operations
+    print("")
+    print("=== Combining Operations ===")
+    let data = [9, 3, 7, 3, 9, 1, 5, 7]
+    print("Original:")
+    print(data)
+    
+    let unique_data = unique(data)
+    print("After unique:")
+    print(unique_data)
+    
+    let sorted_unique = sort(unique_data)
+    print("After sort:")
+    print(sorted_unique)
+    
+    // Array statistics
+    print("")
+    print("=== Statistics ===")
+    let dataset = range(1, 101)
+    print("Dataset: 1 to 100")
+    
+    let total = gpu_sum(dataset)
+    print("Sum:")
+    print(total)
+    
+    let average = gpu_mean(dataset)
+    print("Mean:")
+    print(average)
+    
+    let first_val = first(dataset)
+    let last_val = last(dataset)
+    print("First:")
+    print(first_val)
+    print("Last:")
+    print(last_val)
+    
+    // Performance with large arrays
+    print("")
+    print("=== Performance Test ===")
+    let large = range(1, 10001)
+    print("Processing 10,000 elements...")
+    
+    let large_sum = parallel_sum(large)
+    print("Parallel sum:")
+    print(large_sum)
+    
+    let large_mean = gpu_mean(large)
+    print("GPU mean:")
+    print(large_mean)
+    
+    print("")
+    print("Advanced array operations completed!")
+}
+
