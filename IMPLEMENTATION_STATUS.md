@@ -11,6 +11,8 @@
 - [x] Structs with methods (class-like)
 - [x] Enums with variants and associated data
 - [x] Pattern matching with enums
+- [x] Pattern matching with data extraction (variable binding)
+- [x] Match expressions with wildcard patterns
 - [x] Traits (interfaces)
 - [x] Trait implementations (`impl Trait for Type`)
 - [x] Inherent implementations (`impl Type`)

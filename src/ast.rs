@@ -157,6 +157,11 @@ pub enum Pattern {
     Literal(Literal),
     Variable(String),
     Wildcard,
+    EnumVariant {
+        enum_name: String,
+        variant_name: String,
+        binding: Option<String>, // Variable name to bind the data to
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]

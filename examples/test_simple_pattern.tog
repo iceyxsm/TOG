@@ -1,0 +1,19 @@
+enum Status {
+    Success,
+    Failure
+}
+
+fn main() {
+    print("Testing simple pattern")
+    
+    let s = Status::Success
+    
+    match s {
+        Status::Success => print("It's a success!"),
+        Status::Failure => print("It's a failure!"),
+        _ => print("Unknown")
+    }
+    
+    print("Done")
+}
+

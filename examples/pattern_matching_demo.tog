@@ -1,0 +1,116 @@
+// Pattern Matching with Data Extraction Demo
+
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+enum Option {
+    Some(int),
+    None
+}
+
+fn safe_divide(a: int, b: int) {
+    if b == 0 {
+        Result::Err("Division by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+fn main() {
+    print("=== Pattern Matching with Data Extraction ===")
+    print("")
+    
+    // Example 1: Extract value from Ok
+    print("Example 1: Extracting Success Value")
+    let result1 = safe_divide(10, 2)
+    match result1 {
+        Result::Ok(value) => {
+            print("Success! Result is:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 2: Extract error message
+    print("Example 2: Extracting Error Message")
+    let result2 = safe_divide(10, 0)
+    match result2 {
+        Result::Ok(value) => {
+            print("Success:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Error message:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 3: Option with Some
+    print("Example 3: Option Pattern Matching")
+    let has_value = Option::Some(42)
+    match has_value {
+        Option::Some(val) => {
+            print("Found value:")
+            print(val)
+        },
+        Option::None => {
+            print("No value")
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 4: Option with None
+    print("Example 4: Option None")
+    let no_value = Option::None
+    match no_value {
+        Option::Some(val) => {
+            print("Found value:")
+            print(val)
+        },
+        Option::None => {
+            print("No value present")
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 5: Using extracted values in calculations
+    print("Example 5: Using Extracted Values")
+    let result3 = safe_divide(100, 4)
+    match result3 {
+        Result::Ok(value) => {
+            let doubled = value * 2
+            print("Result doubled:")
+            print(doubled)
+        },
+        Result::Err(msg) => {
+            print("Error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    print("Pattern matching demo completed!")
+    print("")
+    print("Key features demonstrated:")
+    print("1. Pattern matching with enum variants")
+    print("2. Data extraction from enum variants")
+    print("3. Variable binding in patterns")
+    print("4. Using extracted values in expressions")
+}
+

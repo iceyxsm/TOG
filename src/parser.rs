@@ -650,8 +650,8 @@ impl Parser {
     fn match_expression(&mut self) -> Result<Expr, TogError> {
         // Note: match keyword was already consumed if called from statement()
         // But if called from unary(), it was also consumed
-        // Parse the expression being matched (use or() to avoid recursion)
-        let expr = Box::new(self.or()?);
+        // Parse the expression being matched (use call() to avoid struct literal parsing)
+        let expr = Box::new(self.call()?);
 
         self.consume(&Token::LeftBrace, "Expected '{' after match expression")?;
         
@@ -701,6 +701,29 @@ impl Parser {
         }
         if let Token::Identifier(name) = self.peek() {
             let name = name.clone();
+            
+            // Check for enum variant pattern: EnumName::VariantName or EnumName::VariantName(binding)
+            if self.check_ahead(1, &Token::ColonColon) {
+                self.advance(); // consume enum name
+                self.consume(&Token::ColonColon, "Expected '::'")?;
+                let variant_name = self.consume_identifier()?;
+                
+                // Check for binding: VariantName(var)
+                let binding = if self.match_token(&[Token::LeftParen]) {
+                    let binding_name = self.consume_identifier()?;
+                    self.consume(&Token::RightParen, "Expected ')' after binding")?;
+                    Some(binding_name)
+                } else {
+                    None
+                };
+                
+                return Ok(Pattern::EnumVariant {
+                    enum_name: name,
+                    variant_name,
+                    binding,
+                });
+            }
+            
             self.advance();
             if name == "_" {
                 return Ok(Pattern::Wildcard);
@@ -794,9 +817,25 @@ impl Parser {
                     return Ok(Expr::Literal(Literal::Bool(val)));
                 },
                 Token::Identifier(name) => {
-                    // Check for struct literal: Point { ... }
+                    // Check for struct literal: Point { field: value, ... }
+                    // We need to distinguish from match expressions: match x { ... }
+                    // A struct literal has the pattern: Identifier { Identifier : ...
+                    // So we check ahead for { followed by an identifier and then :
                     if self.check_ahead(1, &Token::LeftBrace) {
-                        return self.struct_literal();
+                        // Look further ahead to see if this is really a struct literal
+                        // Check if after { there's an identifier followed by :
+                        if self.current + 2 < self.tokens.len() {
+                            if let Token::Identifier(_) = &self.tokens[self.current + 2] {
+                                if self.current + 3 < self.tokens.len() {
+                                    if matches!(&self.tokens[self.current + 3], Token::Colon) {
+                                        // Definitely a struct literal: Name { field: ...
+                                        return self.struct_literal();
+                                    }
+                                }
+                            }
+                        }
+                        // If we get here, it's Identifier { but not followed by field:
+                        // So it's probably match x { or similar - treat as variable
                     }
                     
                     // Check for enum variant: EnumName::VariantName or EnumName::VariantName(data)
@@ -944,6 +983,7 @@ impl Parser {
             (Token::String(_), Token::String(_)) => true,
             (Token::InterpolatedString(_), Token::InterpolatedString(_)) => true,
             (Token::Identifier(_), Token::Identifier(_)) => true,
+            (Token::ColonColon, Token::ColonColon) => true,
             _ => token == future_token,
         }
     }

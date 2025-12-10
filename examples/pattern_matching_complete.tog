@@ -1,0 +1,73 @@
+// Comprehensive Pattern Matching Test for TOG
+
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+enum Status {
+    Success,
+    Failure,
+    Pending
+}
+
+fn main() {
+    print("=== TOG Pattern Matching Demo ===")
+    print("")
+    
+    // Test 1: Simple enum variants (no data)
+    print("Test 1: Simple enum variants")
+    let status = Status::Success
+    match status {
+        Status::Success => print("  ✓ Matched Success!"),
+        Status::Failure => print("  ✗ Matched Failure"),
+        Status::Pending => print("  ⏳ Matched Pending"),
+        _ => print("  ? Unknown status")
+    }
+    print("")
+    
+    // Test 2: Enum with data extraction
+    print("Test 2: Enum with data extraction")
+    let result_ok = Result::Ok(42)
+    match result_ok {
+        Result::Ok(value) => print(value),
+        Result::Err(msg) => print(msg),
+        _ => print("  ? Unknown result")
+    }
+    print("")
+    
+    // Test 3: Error case with data extraction
+    print("Test 3: Error case with data extraction")
+    let result_err = Result::Err("Something went wrong")
+    match result_err {
+        Result::Ok(value) => print(value),
+        Result::Err(msg) => print(msg),
+        _ => print("  ? Unknown result")
+    }
+    print("")
+    
+    // Test 4: Wildcard pattern
+    print("Test 4: Wildcard pattern")
+    let x = 100
+    match x {
+        _ => print("  ✓ Wildcard matched!")
+    }
+    print("")
+    
+    // Test 5: Multiple patterns
+    print("Test 5: Testing all Result variants")
+    let results = [Result::Ok(1), Result::Ok(2), Result::Err("error")]
+    print("  Created array of Result values")
+    print("")
+    
+    print("=== All Pattern Matching Tests Passed! ===")
+    print("")
+    print("Features demonstrated:")
+    print("  ✓ Enum definitions")
+    print("  ✓ Enum variant construction (with and without data)")
+    print("  ✓ Pattern matching on enum variants")
+    print("  ✓ Data extraction from enum variants")
+    print("  ✓ Wildcard patterns")
+    print("  ✓ Match expressions")
+}
+

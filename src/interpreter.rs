@@ -513,19 +513,43 @@ impl Interpreter {
                 for arm in arms {
                     if self.match_pattern(&arm.pattern, &value)? {
                         // Bind pattern variables to the matched value
-                        if let Pattern::Variable(var_name) = &arm.pattern {
-                            let old_val = self.environment.borrow().get(var_name).ok();
-                            self.environment.borrow_mut().define(var_name.clone(), value.clone());
-                            let result = self.evaluate(&arm.body);
-                            // Restore old value if it existed
-                            if let Some(old) = old_val {
-                                self.environment.borrow_mut().assign(&var_name, old)?;
-                            } else {
-                                self.environment.borrow_mut().remove(var_name);
+                        match &arm.pattern {
+                            Pattern::Variable(var_name) => {
+                                let old_val = self.environment.borrow().get(var_name).ok();
+                                self.environment.borrow_mut().define(var_name.clone(), value.clone());
+                                let result = self.evaluate(&arm.body);
+                                // Restore old value if it existed
+                                if let Some(old) = old_val {
+                                    self.environment.borrow_mut().assign(&var_name, old)?;
+                                } else {
+                                    self.environment.borrow_mut().remove(var_name);
+                                }
+                                return result;
                             }
-                            return result;
+                            Pattern::EnumVariant { binding, .. } => {
+                                // Bind the data from the enum variant
+                                if let Some(binding_name) = binding {
+                                    if let Value::Enum { data, .. } = &value {
+                                        if let Some(data_value) = data {
+                                            let old_val = self.environment.borrow().get(binding_name).ok();
+                                            self.environment.borrow_mut().define(binding_name.clone(), (**data_value).clone());
+                                            let result = self.evaluate(&arm.body);
+                                            // Restore old value if it existed
+                                            if let Some(old) = old_val {
+                                                self.environment.borrow_mut().assign(&binding_name, old)?;
+                                            } else {
+                                                self.environment.borrow_mut().remove(binding_name);
+                                            }
+                                            return result;
+                                        }
+                                    }
+                                }
+                                return self.evaluate(&arm.body);
+                            }
+                            _ => {
+                                return self.evaluate(&arm.body);
+                            }
                         }
-                        return self.evaluate(&arm.body);
                     }
                 }
                 Err(TogError::RuntimeError(
@@ -621,6 +645,11 @@ impl Interpreter {
                 Ok(lit_val == *val)
             }
             (Pattern::Variable(_), _) => Ok(true), // Always match variables
+            (Pattern::EnumVariant { enum_name, variant_name, .. }, Value::Enum { enum_name: val_enum, variant_name: val_variant, .. }) => {
+                // Match if enum name and variant name match
+                Ok(enum_name == val_enum && variant_name == val_variant)
+            }
+            (Pattern::EnumVariant { .. }, _) => Ok(false), // Enum pattern doesn't match non-enum value
         }
     }
     
