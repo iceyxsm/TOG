@@ -1,0 +1,20 @@
+// Variables and types in TOG
+fn main() {
+    // Type inference
+    let name = "TOG"
+    let age = 2025
+    let pi = 3.14159
+    
+    // Explicit types
+    let count: int = 42
+    let price: float = 99.99
+    let message: string = "Type-safe!"
+    
+    print(name)
+    print(age)
+    print(pi)
+    print(count)
+    print(price)
+    print(message)
+}
+

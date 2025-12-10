@@ -1,0 +1,15 @@
+// Hello World in TOG - Simpler than Python!
+// No need for if __name__ == "__main__" or any boilerplate
+
+fn main() {
+    print("Hello, TOG!")
+}
+
+// Even simpler - functions auto-return
+fn greet() {
+    "Hello from a function!"
+}
+
+fn show_greet() {
+    print(greet())
+}

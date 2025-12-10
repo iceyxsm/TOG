@@ -1,0 +1,13 @@
+// Arrays in TOG
+fn main() {
+    let numbers = [1, 2, 3, 4, 5]
+    let names = ["Alice", "Bob", "Charlie"]
+    
+    print(numbers)
+    print(names)
+    
+    // Array operations (coming soon)
+    let first = numbers[0]
+    print(first)
+}
+

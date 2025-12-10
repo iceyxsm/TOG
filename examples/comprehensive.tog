@@ -1,0 +1,65 @@
+// Comprehensive TOG example showcasing key features
+fn greet(name: string) -> string {
+    return "Hello, " + name + "!"
+}
+
+fn calculate(x: int, y: int) -> int {
+    return x * y + 10
+}
+
+fn main() {
+    // Variables with type inference
+    let name = "TOG"
+    let version = 1
+    let pi = 3.14159
+    
+    // Explicit types
+    let count: int = 42
+    let price: float = 99.99
+    
+    // Print statements
+    print("Welcome to TOG!")
+    print(greet(name))
+    print(version)
+    print(pi)
+    
+    // Arithmetic
+    let sum = 10 + 20
+    let product = calculate(5, 6)
+    print(sum)
+    print(product)
+    
+    // Conditionals
+    if count > 40 {
+        print("Count is greater than 40")
+    } else {
+        print("Count is not greater than 40")
+    }
+    
+    // Loops
+    let i = 0
+    while i < 3 {
+        print(i)
+        i = i + 1
+    }
+    
+    // Arrays
+    let numbers = [1, 2, 3, 4, 5]
+    let names = ["Alice", "Bob", "Charlie"]
+    print(numbers)
+    print(names)
+    
+    // Pattern matching
+    match count {
+        42 => print("The answer!"),
+        10 => print("Ten"),
+        _ => print("Other number")
+    }
+    
+    // Boolean logic
+    let is_true = true
+    let is_false = false
+    print(is_true && !is_false)
+    print(is_true || is_false)
+}
+

@@ -1,0 +1,25 @@
+// Functions in TOG - Way simpler than Python!
+
+// No return needed for single expressions!
+fn greet(name) {
+    "Hello, " + name
+}
+
+fn add(a, b) {
+    a + b
+}
+
+// Types are optional - add them when you need them
+fn typed_add(a: int, b: int) -> int {
+    a + b
+}
+
+fn main() {
+    // print is a function, not a statement
+    print(greet("TOG"))
+    print(add(10, 20))
+    print(typed_add(5, 15))
+    
+    // Auto-convert to strings
+    print("Sum: " + add(7, 8))
+}

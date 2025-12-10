@@ -1,0 +1,21 @@
+[package]
+name = "tog"
+version = "0.1.0"
+edition = "2021"
+description = "TOG Programming Language - Better than Python and Rust"
+authors = ["TOG Team"]
+license = "MIT"
+
+[[bin]]
+name = "tog"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+colored = "2.1"
+regex = "1.10"
+anyhow = "1.0"
+
+[dev-dependencies]
+insta = "1.34"
+
