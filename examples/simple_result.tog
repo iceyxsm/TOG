@@ -1,0 +1,53 @@
+// Simple Result/Option demonstration
+// Note: Enum variants with data (Result::Ok(value)) require additional parser support
+// This example shows the concept using simple variants
+
+enum Status {
+    Success,
+    Failure,
+    Pending
+}
+
+fn check_status(code: int) {
+    if code == 0 {
+        Status::Success
+    } else if code == 1 {
+        Status::Failure
+    } else {
+        Status::Pending
+    }
+}
+
+fn main() {
+    print("=== Simple Status Example ===")
+    print("")
+    
+    let status1 = check_status(0)
+    print("Status for code 0:")
+    match status1 {
+        Status::Success => print("Operation successful!"),
+        Status::Failure => print("Operation failed!"),
+        Status::Pending => print("Operation pending..."),
+        _ => print("Unknown status")
+    }
+    
+    print("")
+    
+    let status2 = check_status(1)
+    print("Status for code 1:")
+    match status2 {
+        Status::Success => print("Operation successful!"),
+        Status::Failure => print("Operation failed!"),
+        Status::Pending => print("Operation pending..."),
+        _ => print("Unknown status")
+    }
+    
+    print("")
+    print("Simple enum example completed!")
+    print("")
+    print("Note: Full Result<T, E> with data requires:")
+    print("- Enum variant construction: Result::Ok(42)")
+    print("- Pattern matching with data: Result::Ok(value) => ...")
+    print("- These features are planned for the next update")
+}
+

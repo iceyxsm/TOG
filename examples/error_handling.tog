@@ -1,0 +1,208 @@
+// Error Handling in TOG
+// Demonstrates Result<T, E> and Option<T> patterns
+
+// Define Result enum for error handling
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+enum FloatResult {
+    Ok(float),
+    Err(string)
+}
+
+enum Option {
+    Some(int),
+    None
+}
+
+// Safe division that returns Result
+fn safe_divide(a: int, b: int) {
+    if b == 0 {
+        Result::Err("Division by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+// Safe square root that returns FloatResult
+fn safe_sqrt(x: float) {
+    if x < 0.0 {
+        FloatResult::Err("Cannot take square root of negative number")
+    } else {
+        FloatResult::Ok(sqrt(x))
+    }
+}
+
+// Parse integer from string (returns Result)
+fn parse_int(s: string) {
+    if s == "42" {
+        Result::Ok(42)
+    } else if s == "100" {
+        Result::Ok(100)
+    } else {
+        Result::Err("Failed to parse integer")
+    }
+}
+
+fn main() {
+    print("=== Error Handling Examples ===")
+    print("")
+    
+    // Example 1: Safe Division
+    print("Example 1: Safe Division")
+    let result1 = safe_divide(10, 2)
+    match result1 {
+        Result::Ok(value) => {
+            print("Success: 10 / 2 =")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    let result2 = safe_divide(10, 0)
+    match result2 {
+        Result::Ok(value) => {
+            print("Success:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Error: 10 / 0 -")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 2: Safe Square Root
+    print("Example 2: Safe Square Root")
+    let sqrt_result1 = safe_sqrt(25.0)
+    match sqrt_result1 {
+        FloatResult::Ok(value) => {
+            print("sqrt(25) =")
+            print(value)
+        },
+        FloatResult::Err(msg) => {
+            print("Error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    let sqrt_result2 = safe_sqrt(-4.0)
+    match sqrt_result2 {
+        FloatResult::Ok(value) => {
+            print("Result:")
+            print(value)
+        },
+        FloatResult::Err(msg) => {
+            print("Error: sqrt(-4) -")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 3: Parsing with Result
+    print("Example 3: Parsing Integers")
+    let parse1 = parse_int("42")
+    match parse1 {
+        Result::Ok(value) => {
+            print("Parsed '42' successfully:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Parse error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    let parse2 = parse_int("invalid")
+    match parse2 {
+        Result::Ok(value) => {
+            print("Parsed:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Parse error for 'invalid':")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 4: Option for nullable values
+    print("Example 4: Option for Nullable Values")
+    
+    let has_value = Option::Some(42)
+    match has_value {
+        Option::Some(val) => {
+            print("Has value:")
+            print(val)
+        },
+        Option::None => {
+            print("No value")
+        },
+        _ => print("Unknown")
+    }
+    
+    let no_value = Option::None
+    match no_value {
+        Option::Some(val) => {
+            print("Has value:")
+            print(val)
+        },
+        Option::None => {
+            print("No value present")
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    
+    // Example 5: Chaining Operations
+    print("Example 5: Chaining Error-Prone Operations")
+    let input = "42"
+    let parsed = parse_int(input)
+    
+    match parsed {
+        Result::Ok(num) => {
+            let divided = safe_divide(num, 2)
+            match divided {
+                Result::Ok(result) => {
+                    print("Parsed and divided successfully:")
+                    print(result)
+                },
+                Result::Err(msg) => {
+                    print("Division error:")
+                    print(msg)
+                },
+                _ => print("Unknown")
+            }
+        },
+        Result::Err(msg) => {
+            print("Parse error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("")
+    print("Error handling examples completed!")
+    print("")
+    print("Key concepts demonstrated:")
+    print("1. Result<T, E> for operations that can fail")
+    print("2. Option<T> for values that may not exist")
+    print("3. Pattern matching for error handling")
+    print("4. Type-safe error propagation")
+    print("5. Chaining error-prone operations")
+}

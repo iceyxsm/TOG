@@ -56,6 +56,8 @@
 ## Planned
 
 ### Language Features
+- [ ] Enum variant construction with data (`Result::Ok(42)`)
+- [ ] Pattern matching with data extraction
 - [ ] Trait bounds and generic constraints
 - [ ] Generics with type parameters
 - [ ] Async/await

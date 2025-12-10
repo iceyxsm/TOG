@@ -1,0 +1,31 @@
+// Simple Result test
+
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+fn main() {
+    print("Testing Result enum")
+    
+    let success = Result::Ok(42)
+    print("Created success result")
+    
+    let failure = Result::Err("Something went wrong")
+    print("Created failure result")
+    
+    match success {
+        Result::Ok(value) => {
+            print("Success value:")
+            print(value)
+        },
+        Result::Err(msg) => {
+            print("Error:")
+            print(msg)
+        },
+        _ => print("Unknown")
+    }
+    
+    print("Test completed")
+}
+

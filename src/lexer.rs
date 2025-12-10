@@ -41,6 +41,7 @@ pub enum Token {
     Comma,
     Semicolon,
     Colon,
+    ColonColon, // ::
     Arrow, // ->
     FatArrow, // =>
     
@@ -363,9 +364,15 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
                 column += 1;
             }
             ':' => {
-                tokens.push(Token::Colon);
                 chars.next();
                 column += 1;
+                if matches!(chars.peek(), Some(':')) {
+                    chars.next();
+                    column += 1;
+                    tokens.push(Token::ColonColon);
+                } else {
+                    tokens.push(Token::Colon);
+                }
             }
             
             // Identifiers and keywords

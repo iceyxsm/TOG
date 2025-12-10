@@ -1,0 +1,39 @@
+// TOG Standard Library Prelude
+// This file defines core types that are automatically available
+
+// Option<T> - Represents an optional value
+enum Option {
+    Some(int),  // For now, we'll use specific types until generics are implemented
+    None
+}
+
+// Result<T, E> - Represents success or failure
+enum Result {
+    Ok(int),    // Success value
+    Err(string) // Error message
+}
+
+// String-based Result for operations that can fail
+enum StrResult {
+    Ok(string),
+    Err(string)
+}
+
+// Float-based Result
+enum FloatResult {
+    Ok(float),
+    Err(string)
+}
+
+// Bool-based Result
+enum BoolResult {
+    Ok(bool),
+    Err(string)
+}
+
+// Array-based Result
+enum ArrayResult {
+    Ok(array),
+    Err(string)
+}
+
