@@ -13,6 +13,7 @@
 - [x] Pattern matching with enums
 - [x] Pattern matching with data extraction (variable binding)
 - [x] Match expressions with wildcard patterns
+- [x] Result/Option helper methods (unwrap, unwrap_or, expect, is_ok, is_err, is_some, is_none)
 - [x] Traits (interfaces)
 - [x] Trait implementations (`impl Trait for Type`)
 - [x] Inherent implementations (`impl Type`)

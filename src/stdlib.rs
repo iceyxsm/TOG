@@ -702,6 +702,245 @@ pub fn call_builtin(name: &str, args: &[Value]) -> Result<Value, TogError> {
                 _ => Err(TogError::TypeError("sort() expects array".to_string(), None))
             }
         }
+        
+        // Result helper methods
+        "unwrap" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("unwrap() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, data } => {
+                    if enum_name == "Result" && variant_name == "Ok" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Err(TogError::RuntimeError(
+                                "unwrap() called on Result::Ok with no data".to_string(),
+                                None
+                            ))
+                        }
+                    } else if enum_name == "Result" && variant_name == "Err" {
+                        if let Some(err) = data {
+                            Err(TogError::RuntimeError(
+                                format!("unwrap() called on Result::Err({})", value_to_string(err)),
+                                None
+                            ))
+                        } else {
+                            Err(TogError::RuntimeError(
+                                "unwrap() called on Result::Err".to_string(),
+                                None
+                            ))
+                        }
+                    } else if enum_name == "Option" && variant_name == "Some" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Err(TogError::RuntimeError(
+                                "unwrap() called on Option::Some with no data".to_string(),
+                                None
+                            ))
+                        }
+                    } else if enum_name == "Option" && variant_name == "None" {
+                        Err(TogError::RuntimeError(
+                            "unwrap() called on Option::None".to_string(),
+                            None
+                        ))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("unwrap() expects Result or Option, got {}::{}", enum_name, variant_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "unwrap() expects Result or Option enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "unwrap_or" => {
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("unwrap_or() expects 2 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, data } => {
+                    if enum_name == "Result" && variant_name == "Ok" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Ok(args[1].clone())
+                        }
+                    } else if enum_name == "Result" && variant_name == "Err" {
+                        Ok(args[1].clone())
+                    } else if enum_name == "Option" && variant_name == "Some" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Ok(args[1].clone())
+                        }
+                    } else if enum_name == "Option" && variant_name == "None" {
+                        Ok(args[1].clone())
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("unwrap_or() expects Result or Option, got {}::{}", enum_name, variant_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "unwrap_or() expects Result or Option enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "expect" => {
+            if args.len() != 2 {
+                return Err(TogError::RuntimeError(
+                    format!("expect() expects 2 arguments, got {}", args.len()),
+                    None
+                ));
+            }
+            let msg = match &args[1] {
+                Value::String(s) => s.clone(),
+                _ => return Err(TogError::TypeError(
+                    "expect() second argument must be a string".to_string(),
+                    None
+                ))
+            };
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, data } => {
+                    if enum_name == "Result" && variant_name == "Ok" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Err(TogError::RuntimeError(msg, None))
+                        }
+                    } else if enum_name == "Result" && variant_name == "Err" {
+                        Err(TogError::RuntimeError(msg, None))
+                    } else if enum_name == "Option" && variant_name == "Some" {
+                        if let Some(value) = data {
+                            Ok((**value).clone())
+                        } else {
+                            Err(TogError::RuntimeError(msg, None))
+                        }
+                    } else if enum_name == "Option" && variant_name == "None" {
+                        Err(TogError::RuntimeError(msg, None))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("expect() expects Result or Option, got {}::{}", enum_name, variant_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "expect() expects Result or Option enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "is_ok" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("is_ok() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, .. } => {
+                    if enum_name == "Result" {
+                        Ok(Value::Bool(variant_name == "Ok"))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("is_ok() expects Result, got {}", enum_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "is_ok() expects Result enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "is_err" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("is_err() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, .. } => {
+                    if enum_name == "Result" {
+                        Ok(Value::Bool(variant_name == "Err"))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("is_err() expects Result, got {}", enum_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "is_err() expects Result enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "is_some" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("is_some() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, .. } => {
+                    if enum_name == "Option" {
+                        Ok(Value::Bool(variant_name == "Some"))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("is_some() expects Option, got {}", enum_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "is_some() expects Option enum".to_string(),
+                    None
+                ))
+            }
+        }
+        "is_none" => {
+            if args.len() != 1 {
+                return Err(TogError::RuntimeError(
+                    format!("is_none() expects 1 argument, got {}", args.len()),
+                    None
+                ));
+            }
+            match &args[0] {
+                Value::Enum { enum_name, variant_name, .. } => {
+                    if enum_name == "Option" {
+                        Ok(Value::Bool(variant_name == "None"))
+                    } else {
+                        Err(TogError::TypeError(
+                            format!("is_none() expects Option, got {}", enum_name),
+                            None
+                        ))
+                    }
+                }
+                _ => Err(TogError::TypeError(
+                    "is_none() expects Option enum".to_string(),
+                    None
+                ))
+            }
+        }
+        
         _ => Err(TogError::RuntimeError(
             format!("Unknown builtin function: {}", name),
             None

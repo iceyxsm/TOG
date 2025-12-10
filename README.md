@@ -149,11 +149,28 @@ fn process_large_dataset() {
 print(greet("World"))
 print("Sum: " + add(10, 20))  // Auto-converts numbers to strings!
 
-// Pattern matching
-match value {
-    1 => print("One"),
-    2 => print("Two"),
-    _ => print("Other")
+// Error handling with Result/Option
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+fn safe_divide(a, b) {
+    if b == 0 {
+        Result::Err("Division by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+let result = safe_divide(10, 2)
+let value = unwrap_or(result, 0)  // 5
+
+// Pattern matching with data extraction
+match result {
+    Result::Ok(value) => print(value),
+    Result::Err(msg) => print(msg),
+    _ => print("Unknown")
 }
 ```
 

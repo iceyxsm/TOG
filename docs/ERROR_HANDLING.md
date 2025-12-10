@@ -1,8 +1,8 @@
-# Error Handling in TOG (In Progress)
+# Error Handling in TOG
 
 ## Overview
 
-TOG is implementing a robust error handling system using `Result<T, E>` and `Option<T>` types, similar to Rust. This document describes the design and current implementation status.
+TOG features a robust error handling system using `Result<T, E>` and `Option<T>` types, similar to Rust. This system provides type-safe error handling with ergonomic helper methods.
 
 ## Design
 
@@ -42,6 +42,100 @@ fn find_index(arr: array, target: int) -> Option {
     } else {
         Option::None
     }
+}
+```
+
+## Helper Methods
+
+TOG provides ergonomic helper methods for working with `Result` and `Option`:
+
+### Result Methods
+
+#### `unwrap(result)` - Extract value or panic
+```tog
+let result = Result::Ok(42)
+let value = unwrap(result)  // 42
+
+let error = Result::Err("failed")
+let value = unwrap(error)  // RuntimeError: "unwrap() called on Result::Err(failed)"
+```
+
+#### `unwrap_or(result, default)` - Extract value or use default
+```tog
+let result = Result::Ok(42)
+let value = unwrap_or(result, 0)  // 42
+
+let error = Result::Err("failed")
+let value = unwrap_or(error, 0)  // 0
+```
+
+#### `expect(result, message)` - Extract value or panic with custom message
+```tog
+let result = Result::Ok(42)
+let value = expect(result, "Expected a value")  // 42
+
+let error = Result::Err("failed")
+let value = expect(error, "Custom error message")  // RuntimeError: "Custom error message"
+```
+
+#### `is_ok(result)` - Check if Result is Ok
+```tog
+let result = Result::Ok(42)
+if is_ok(result) {
+    print("Success!")
+}
+```
+
+#### `is_err(result)` - Check if Result is Err
+```tog
+let result = Result::Err("failed")
+if is_err(result) {
+    print("Error occurred")
+}
+```
+
+### Option Methods
+
+#### `unwrap(option)` - Extract value or panic
+```tog
+let option = Option::Some(42)
+let value = unwrap(option)  // 42
+
+let none = Option::None
+let value = unwrap(none)  // RuntimeError: "unwrap() called on Option::None"
+```
+
+#### `unwrap_or(option, default)` - Extract value or use default
+```tog
+let option = Option::Some(42)
+let value = unwrap_or(option, 0)  // 42
+
+let none = Option::None
+let value = unwrap_or(none, 0)  // 0
+```
+
+#### `expect(option, message)` - Extract value or panic with custom message
+```tog
+let option = Option::Some(42)
+let value = expect(option, "Expected a value")  // 42
+
+let none = Option::None
+let value = expect(none, "Value was None")  // RuntimeError: "Value was None"
+```
+
+#### `is_some(option)` - Check if Option has a value
+```tog
+let option = Option::Some(42)
+if is_some(option) {
+    print("Has value!")
+}
+```
+
+#### `is_none(option)` - Check if Option is None
+```tog
+let option = Option::None
+if is_none(option) {
+    print("No value")
 }
 ```
 
@@ -86,21 +180,152 @@ let failure = Result::Err("error")  // ❌ Not yet implemented
 
 ### What Works Now
 
-Simple enum variants without data:
+✅ **Everything!** The error handling system is fully functional:
+
 ```tog
-enum Status {
-    Success,
-    Failure,
-    Pending
+enum Result {
+    Ok(int),
+    Err(string)
 }
 
-// This works:
-let status = Status::Success  // ✅ Simple variant (no parser support yet)
+enum Option {
+    Some(int),
+    None
+}
+
+// ✅ Enum definitions with associated data
+// ✅ Enum variant construction
+let success = Result::Ok(42)
+let failure = Result::Err("error message")
+let some_val = Option::Some(100)
+let none_val = Option::None
+
+// ✅ Pattern matching with data extraction
+match success {
+    Result::Ok(value) => print(value),
+    Result::Err(msg) => print(msg),
+    _ => print("Unknown")
+}
+
+// ✅ Helper methods
+let val1 = unwrap(success)  // 42
+let val2 = unwrap_or(failure, -1)  // -1
+if is_ok(success) {
+    print("Success!")
+}
 ```
 
-### What's Needed
+## Practical Examples
 
-To complete error handling, we need to implement:
+### Safe Division
+
+```tog
+fn safe_divide(a, b) {
+    if b == 0 {
+        Result::Err("Cannot divide by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+fn main() {
+    let result = safe_divide(10, 2)
+    if is_ok(result) {
+        print(unwrap(result))  // 5
+    }
+    
+    let error = safe_divide(10, 0)
+    print(unwrap_or(error, -1))  // -1
+}
+```
+
+### Safe Array Access
+
+```tog
+fn get_at(arr, index) {
+    if index < 0 {
+        Option::None
+    } else {
+        if index >= len(arr) {
+            Option::None
+        } else {
+            Option::Some(arr[index])
+        }
+    }
+}
+
+fn main() {
+    let numbers = [10, 20, 30]
+    
+    let item = get_at(numbers, 1)
+    if is_some(item) {
+        print(unwrap(item))  // 20
+    }
+    
+    let missing = get_at(numbers, 10)
+    print(unwrap_or(missing, -1))  // -1
+}
+```
+
+### Chaining Operations
+
+```tog
+fn parse_positive(n) {
+    if n > 0 {
+        Result::Ok(n)
+    } else {
+        Result::Err("Number must be positive")
+    }
+}
+
+fn main() {
+    let step1 = parse_positive(10)
+    if is_ok(step1) {
+        let val = unwrap(step1)
+        let step2 = safe_divide(val, 2)
+        if is_ok(step2) {
+            print(unwrap(step2))  // 5
+        }
+    }
+}
+```
+
+## Best Practices
+
+1. **Use `unwrap_or()` for safe defaults**
+   ```tog
+   let value = unwrap_or(risky_operation(), default_value)
+   ```
+
+2. **Check before unwrapping**
+   ```tog
+   if is_ok(result) {
+       let value = unwrap(result)
+       // ... use value ...
+   }
+   ```
+
+3. **Use pattern matching for complex logic**
+   ```tog
+   match result {
+       Result::Ok(value) => {
+           // Handle success
+       },
+       Result::Err(msg) => {
+           // Handle error
+       },
+       _ => {}
+   }
+   ```
+
+4. **Use `expect()` for debugging**
+   ```tog
+   let value = expect(result, "This should never fail")
+   ```
+
+### Future Enhancements
+
+To further improve error handling, we could implement:
 
 1. **Parser Support for `::`**
    - Parse `EnumName::VariantName`

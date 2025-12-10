@@ -1,0 +1,169 @@
+// Practical Error Handling with Result and Option
+
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+enum Option {
+    Some(int),
+    None
+}
+
+// Safe division that returns Result
+fn safe_divide(a, b) {
+    if b == 0 {
+        Result::Err("Cannot divide by zero")
+    } else {
+        Result::Ok(a / b)
+    }
+}
+
+// Safe array access that returns Option
+fn get_at(arr, index) {
+    if index < 0 {
+        Option::None
+    } else {
+        if index >= len(arr) {
+            Option::None
+        } else {
+            Option::Some(arr[index])
+        }
+    }
+}
+
+// Parse integer (simplified - just checks if positive)
+fn parse_positive(n) {
+    if n > 0 {
+        Result::Ok(n)
+    } else {
+        Result::Err("Number must be positive")
+    }
+}
+
+fn main() {
+    print("=== Practical Error Handling Examples ===")
+    print("")
+    
+    // Example 1: Safe division with unwrap_or
+    print("Example 1: Safe Division")
+    let result1 = safe_divide(100, 5)
+    let value1 = unwrap_or(result1, 0)
+    print(value1)  // 20
+    
+    let result2 = safe_divide(100, 0)
+    let value2 = unwrap_or(result2, -1)
+    print(value2)  // -1 (fallback value)
+    print("")
+    
+    // Example 2: Checking before unwrapping
+    print("Example 2: Check Before Unwrap")
+    let calc = safe_divide(50, 2)
+    if is_ok(calc) {
+        print("  Success! Result:")
+        print(unwrap(calc))
+    }
+    
+    let bad_calc = safe_divide(50, 0)
+    if is_err(bad_calc) {
+        print("  Error detected, using default")
+        print(unwrap_or(bad_calc, 0))
+    }
+    print("")
+    
+    // Example 3: Safe array access
+    print("Example 3: Safe Array Access")
+    let numbers = [10, 20, 30, 40, 50]
+    
+    let item1 = get_at(numbers, 2)
+    if is_some(item1) {
+        print("  Found:")
+        print(unwrap(item1))  // 30
+    }
+    
+    let item2 = get_at(numbers, 100)
+    if is_none(item2) {
+        print("  Not found, using default")
+        print(unwrap_or(item2, -1))  // -1
+    }
+    print("")
+    
+    // Example 4: Chaining operations
+    print("Example 4: Chaining Operations")
+    let step1 = parse_positive(10)
+    if is_ok(step1) {
+        let val = unwrap(step1)
+        let step2 = safe_divide(val, 2)
+        if is_ok(step2) {
+            print("  Final result:")
+            print(unwrap(step2))  // 5
+        }
+    }
+    print("")
+    
+    // Example 5: Practical calculator
+    print("Example 5: Calculator with Error Handling")
+    let a = 100
+    let b = 4
+    
+    let div_result = safe_divide(a, b)
+    if is_ok(div_result) {
+        let quotient = unwrap(div_result)
+        print("  100 / 4 =")
+        print(quotient)
+    }
+    
+    let zero_div = safe_divide(a, 0)
+    if is_err(zero_div) {
+        print("  100 / 0 = Error (using 0 as fallback)")
+        print(unwrap_or(zero_div, 0))
+    }
+    print("")
+    
+    // Example 6: Finding elements
+    print("Example 6: Finding Elements in Array")
+    let data = [5, 10, 15, 20, 25]
+    let indices = [0, 2, 4, 10]
+    
+    let i = 0
+    while i < len(indices) {
+        let idx = indices[i]
+        let result = get_at(data, idx)
+        if is_some(result) {
+            print("  Index")
+            print(idx)
+            print("  ->")
+            print(unwrap(result))
+        }
+        i = i + 1
+    }
+    print("")
+    
+    // Example 7: Validation pipeline
+    print("Example 7: Validation Pipeline")
+    let inputs = [10, -5, 20, 0]
+    let valid_count = 0
+    
+    let j = 0
+    while j < len(inputs) {
+        let validation = parse_positive(inputs[j])
+        if is_ok(validation) {
+            valid_count = valid_count + 1
+        }
+        j = j + 1
+    }
+    
+    print("  Valid inputs:")
+    print(valid_count)
+    print("")
+    
+    print("=== All Examples Completed Successfully! ===")
+    print("")
+    print("Key Takeaways:")
+    print("  ✓ Use Result for operations that can fail")
+    print("  ✓ Use Option for values that might not exist")
+    print("  ✓ Check with is_ok/is_err/is_some/is_none before unwrapping")
+    print("  ✓ Use unwrap_or() for safe defaults")
+    print("  ✓ Use unwrap() only when you're sure it's safe")
+}
+
