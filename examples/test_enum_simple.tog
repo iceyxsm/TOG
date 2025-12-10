@@ -1,0 +1,13 @@
+enum Status {
+    Success,
+    Failure
+}
+
+fn main() {
+    print("Testing enum construction")
+    let s = Status::Success
+    print("Created enum variant")
+    print(s)
+    print("Done")
+}
+

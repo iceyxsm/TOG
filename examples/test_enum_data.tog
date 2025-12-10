@@ -1,0 +1,19 @@
+enum Result {
+    Ok(int),
+    Err(string)
+}
+
+fn main() {
+    print("Testing enum with data")
+    
+    let success = Result::Ok(42)
+    print("Created Ok variant:")
+    print(success)
+    
+    let failure = Result::Err("Something went wrong")
+    print("Created Err variant:")
+    print(failure)
+    
+    print("Test completed!")
+}
+

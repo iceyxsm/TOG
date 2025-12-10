@@ -798,6 +798,11 @@ impl Parser {
                     if self.check_ahead(1, &Token::LeftBrace) {
                         return self.struct_literal();
                     }
+                    
+                    // Check for enum variant: EnumName::VariantName or EnumName::VariantName(data)
+                    if self.check_ahead(1, &Token::ColonColon) {
+                        return self.enum_variant_construction();
+                    }
 
                     if name == "_" {
                         // A wildcard `_` is not a valid expression on its own.
@@ -863,6 +868,28 @@ impl Parser {
         self.consume(&Token::RightBrace, "Expected '}' after struct literal")?;
 
         Ok(Expr::StructLiteral { name, fields })
+    }
+    
+    fn enum_variant_construction(&mut self) -> Result<Expr, TogError> {
+        // Parse: EnumName::VariantName or EnumName::VariantName(data)
+        let enum_name = self.consume_identifier()?;
+        self.consume(&Token::ColonColon, "Expected '::' after enum name")?;
+        let variant_name = self.consume_identifier()?;
+        
+        // Check if there's associated data: VariantName(data)
+        let data = if self.match_token(&[Token::LeftParen]) {
+            let data_expr = self.expression()?;
+            self.consume(&Token::RightParen, "Expected ')' after enum variant data")?;
+            Some(Box::new(data_expr))
+        } else {
+            None
+        };
+        
+        Ok(Expr::EnumVariant {
+            enum_name,
+            variant_name,
+            data,
+        })
     }
 
     // Helper methods
