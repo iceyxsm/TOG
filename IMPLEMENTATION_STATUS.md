@@ -9,6 +9,8 @@
 - [x] Type system (gradual typing)
 - [x] Error handling
 - [x] Structs with methods (class-like)
+- [x] Enums with variants and associated data
+- [x] Pattern matching with enums
 
 ### Compiler Architecture
 - [x] Intermediate Representation (IR)
@@ -51,7 +53,6 @@
 ## Planned
 
 ### Language Features
-- [ ] Enums (structs are complete)
 - [ ] Traits/interfaces
 - [ ] Generics
 - [ ] Async/await
@@ -60,13 +61,14 @@
 - [ ] Custom allocators
 - [ ] Nested field assignment for non-struct aggregates
 
-### GPU and Parallel Processing (In Progress)
+### GPU and Parallel Processing
 - [x] GPU-accelerated sum, mean, product
 - [x] Parallel sum with multi-threading
 - [x] Batch size optimization
 - [x] Automatic GPU dispatch for numeric arrays
+- [x] Parallel map, filter, reduce (framework)
+- [x] Advanced array operations (first, last, slice, flatten, unique, sort)
 - [ ] Real GPU backend (CUDA/OpenCL integration)
-- [ ] Parallel map, filter, reduce
 - [ ] Custom GPU kernels
 - [ ] Automatic loop vectorization
 
