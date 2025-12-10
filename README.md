@@ -33,6 +33,80 @@ TOG aims to provide:
 - **Custom allocators** - Arena, pool, stack allocators
 - **Zero-overhead abstractions** - High-level code, low-level performance
 
+## Why TOG
+
+TOG was designed to combine the best features of modern programming languages while maintaining simplicity and performance.
+
+### Key Simplifications
+
+#### 1. Auto-Return Functions
+No need for explicit `return` in single-expression functions:
+
+```tog
+// TOG - Simple!
+fn greet(name) {
+    "Hello, " + name
+}
+```
+
+#### 2. print is a Function
+Consistent with everything else - no special statements:
+
+```tog
+// TOG - Everything is a function
+print("Hello")
+print(greet("World"))
+```
+
+#### 3. Auto Type Conversion
+Numbers automatically convert to strings - no manual conversion:
+
+```tog
+// TOG - Just works!
+print("Count: " + 42)
+print("Pi: " + 3.14)
+```
+
+#### 4. No Boilerplate
+Just write your code - no special guards:
+
+```tog
+// TOG - Clean and simple
+fn main() {
+    print("Hello")
+}
+```
+
+#### 5. Simpler Ownership
+TOG's ownership model is intuitive and easy to understand. The compiler handles memory management automatically - no lifetime annotations needed.
+
+#### 6. Gradual Typing
+Start without types, add them as needed for optimization. Type inference works everywhere.
+
+### Real-World Example
+
+**Task**: Create a function that greets a user and prints their age.
+
+**TOG:**
+```tog
+fn greet_user(name, age) {
+    let message = "Hello, " + name + "! You are " + age + " years old."
+    print(message)
+    message
+}
+
+fn main() {
+    greet_user("Alice", 30)
+}
+```
+
+**TOG features:**
+- Minimal boilerplate
+- Simple syntax with auto-conversion
+- Consistent design (everything is a function)
+- Memory safety
+- High performance through compilation
+
 ## Quick Start
 
 ```tog
@@ -67,14 +141,14 @@ match value {
 }
 ```
 
-## Why TOG
+## Installation
 
-1. **No return needed** - Functions auto-return the last expression
-2. **print is a function** - Consistent with everything else
-3. **Auto type conversion** - Numbers auto-convert to strings when needed
-4. **Less boilerplate** - Minimal setup required
-5. **Cleaner syntax** - Fewer special cases and exceptions
-6. **Intuitive defaults** - Everything just works
+```bash
+# Build from source
+cargo build --release
+
+# The binary will be at: target/release/tog.exe (Windows) or target/release/tog (Unix)
+```
 
 ## Performance
 
@@ -87,19 +161,11 @@ TOG is designed for high performance:
 
 See [docs/performance.md](docs/performance.md) for detailed architecture.
 
-## Installation
-
-```bash
-# Build from source
-cargo build --release
-
-# Or use the installer
-./install.sh
-```
-
 ## Documentation
 
-See [docs/](docs/) for full documentation.
+- [Quick Start Guide](QUICKSTART.md)
+- [Full Documentation](docs/)
+- [Implementation Status](IMPLEMENTATION_STATUS.md)
 
 ## Examples
 
@@ -107,9 +173,8 @@ See [examples/](examples/) for example programs.
 
 ## Contributing
 
-Contributions welcome! See CONTRIBUTING.md for guidelines.
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
 MIT License
-
