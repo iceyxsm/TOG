@@ -82,8 +82,6 @@ fn main() {
     let result = apply_twice(10, 5)
     print(result)
     
-    // Auto-return (last expression)
-    print("Auto-return example:")
-    let double = fn(x) { x * 2 }
-    print(double(21))
+    // Note: Inline function expressions are not yet supported
+    print("Functions example completed!")
 }

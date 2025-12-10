@@ -396,6 +396,8 @@ pub fn tokenize(source: &str) -> Result<Vec<Token>, TogError> {
                     "break" => tokens.push(Token::Keyword(Keyword::Break)),
                     "continue" => tokens.push(Token::Keyword(Keyword::Continue)),
                     "none" => tokens.push(Token::Keyword(Keyword::None)),
+                    "true" => tokens.push(Token::Bool(true)),
+                    "false" => tokens.push(Token::Bool(false)),
                     // "print" is now a built-in function, not a keyword
                     // "print" => tokens.push(Token::Keyword(Keyword::Print)),
                     "int" => tokens.push(Token::Keyword(Keyword::Int)),
