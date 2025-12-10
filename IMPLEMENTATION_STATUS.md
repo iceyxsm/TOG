@@ -11,6 +11,9 @@
 - [x] Structs with methods (class-like)
 - [x] Enums with variants and associated data
 - [x] Pattern matching with enums
+- [x] Traits (interfaces)
+- [x] Trait implementations (`impl Trait for Type`)
+- [x] Inherent implementations (`impl Type`)
 
 ### Compiler Architecture
 - [x] Intermediate Representation (IR)
@@ -53,8 +56,8 @@
 ## Planned
 
 ### Language Features
-- [ ] Traits/interfaces
-- [ ] Generics
+- [ ] Trait bounds and generic constraints
+- [ ] Generics with type parameters
 - [ ] Async/await
 - [ ] Macros
 - [ ] Inline assembly

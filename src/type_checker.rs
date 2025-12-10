@@ -100,6 +100,12 @@ impl TypeChecker {
             Stmt::EnumDef { .. } => {
                 // Enum definitions - no type checking needed here
             }
+            Stmt::TraitDef { .. } => {
+                // Trait definitions - no type checking needed here
+            }
+            Stmt::ImplBlock { .. } => {
+                // Impl blocks - type checking will be added later
+            }
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
                     self.infer_expression_type(expr)?;

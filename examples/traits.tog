@@ -1,0 +1,108 @@
+// Traits (Interfaces) in TOG
+// Demonstrates trait definitions and implementations
+
+// Define a trait for drawable objects
+trait Drawable {
+    fn draw(self)
+    fn area(self) -> float
+}
+
+// Define a Circle struct
+struct Circle {
+    radius: float
+}
+
+// Implement Drawable trait for Circle
+impl Drawable for Circle {
+    fn draw(self) {
+        print("Drawing a circle with radius:")
+        print(self.radius)
+    }
+    
+    fn area(self) -> float {
+        3.14159 * self.radius * self.radius
+    }
+}
+
+// Define a Rectangle struct
+struct Rectangle {
+    width: float,
+    height: float
+}
+
+// Implement Drawable trait for Rectangle
+impl Drawable for Rectangle {
+    fn draw(self) {
+        print("Drawing a rectangle:")
+        print("Width: " + self.width)
+        print("Height: " + self.height)
+    }
+    
+    fn area(self) -> float {
+        self.width * self.height
+    }
+}
+
+// Inherent implementation (methods without a trait)
+impl Circle {
+    fn new(radius: float) -> Circle {
+        Circle { radius: radius }
+    }
+    
+    fn diameter(self) -> float {
+        self.radius * 2.0
+    }
+}
+
+impl Rectangle {
+    fn new(width: float, height: float) -> Rectangle {
+        Rectangle { width: width, height: height }
+    }
+    
+    fn perimeter(self) -> float {
+        2.0 * (self.width + self.height)
+    }
+}
+
+fn main() {
+    print("=== Traits Example ===")
+    print("")
+    
+    // Create a circle
+    print("Creating a circle:")
+    let circle = Circle::new(5.0)
+    circle.draw()
+    
+    let circle_area = circle.area()
+    print("Circle area:")
+    print(circle_area)
+    
+    let circle_diameter = circle.diameter()
+    print("Circle diameter:")
+    print(circle_diameter)
+    
+    print("")
+    
+    // Create a rectangle
+    print("Creating a rectangle:")
+    let rect = Rectangle::new(4.0, 6.0)
+    rect.draw()
+    
+    let rect_area = rect.area()
+    print("Rectangle area:")
+    print(rect_area)
+    
+    let rect_perimeter = rect.perimeter()
+    print("Rectangle perimeter:")
+    print(rect_perimeter)
+    
+    print("")
+    print("Traits example completed!")
+    print("")
+    print("Key concepts demonstrated:")
+    print("1. Trait definitions (like interfaces)")
+    print("2. Trait implementations for different types")
+    print("3. Inherent implementations (type-specific methods)")
+    print("4. Polymorphism through traits")
+}
+

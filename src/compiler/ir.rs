@@ -198,6 +198,18 @@ fn stmt_to_ir(stmt: &Stmt) -> Result<IrStatement, TogError> {
                 None
             ))
         }
+        Stmt::TraitDef { .. } => {
+            Err(TogError::RuntimeError(
+                "Trait definitions not yet supported in IR conversion".to_string(),
+                None
+            ))
+        }
+        Stmt::ImplBlock { .. } => {
+            Err(TogError::RuntimeError(
+                "Impl blocks not yet supported in IR conversion".to_string(),
+                None
+            ))
+        }
         Stmt::Expr(expr) => {
             match expr {
                 Expr::If { condition, then_branch, else_branch } => {

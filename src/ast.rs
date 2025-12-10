@@ -85,6 +85,15 @@ pub enum Stmt {
         name: String,
         variants: Vec<EnumVariant>,
     },
+    TraitDef {
+        name: String,
+        methods: Vec<TraitMethod>,
+    },
+    ImplBlock {
+        trait_name: Option<String>, // None for inherent impl, Some for trait impl
+        type_name: String,
+        methods: Vec<MethodDecl>,
+    },
     Return(Option<Expr>),
     Break,
     Continue,
@@ -94,6 +103,14 @@ pub enum Stmt {
 pub struct EnumVariant {
     pub name: String,
     pub data_type: Option<Type>, // Optional associated data type
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TraitMethod {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: Option<Type>,
+    // Trait methods are just signatures, no body
 }
 
 #[derive(Debug, Clone, PartialEq)]

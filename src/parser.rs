@@ -30,6 +30,10 @@ impl Parser {
             self.struct_declaration()
         } else if self.match_token(&[Token::Keyword(Keyword::Enum)]) {
             self.enum_declaration()
+        } else if self.match_token(&[Token::Keyword(Keyword::Trait)]) {
+            self.trait_declaration()
+        } else if self.match_token(&[Token::Keyword(Keyword::Impl)]) {
+            self.impl_block()
         } else if self.match_token(&[Token::Keyword(Keyword::Fn)]) {
             self.function_declaration()
         } else {
@@ -139,6 +143,130 @@ impl Parser {
         self.consume(&Token::RightBrace, "Expected '}' after enum body")?;
 
         Ok(Stmt::EnumDef { name, variants })
+    }
+
+    fn trait_declaration(&mut self) -> Result<Stmt, TogError> {
+        let name = self.consume_identifier()?;
+        self.consume(&Token::LeftBrace, "Expected '{' after trait name")?;
+        let mut methods = Vec::new();
+
+        // Parse trait method signatures
+        while !self.check(&Token::RightBrace) && !self.is_at_end() {
+            self.consume(&Token::Keyword(Keyword::Fn), "Expected 'fn' in trait method")?;
+            let method_name = self.consume_identifier()?;
+            self.consume(&Token::LeftParen, "Expected '(' after method name")?;
+            
+            let mut params = Vec::new();
+            if !self.check(&Token::RightParen) {
+                loop {
+                    let param_name = self.consume_identifier()?;
+                    let param_type = if self.match_token(&[Token::Colon]) {
+                        Some(self.parse_type()?)
+                    } else {
+                        None
+                    };
+                    params.push(Param {
+                        name: param_name,
+                        type_annotation: param_type,
+                    });
+                    
+                    if !self.match_token(&[Token::Comma]) {
+                        break;
+                    }
+                }
+            }
+            self.consume(&Token::RightParen, "Expected ')' after parameters")?;
+            
+            let return_type = if self.match_token(&[Token::Arrow]) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            
+            // Trait methods don't have bodies, just signatures
+            // Optionally consume semicolon
+            self.match_token(&[Token::Semicolon]);
+            
+            methods.push(TraitMethod {
+                name: method_name,
+                params,
+                return_type,
+            });
+        }
+
+        self.consume(&Token::RightBrace, "Expected '}' after trait body")?;
+
+        Ok(Stmt::TraitDef { name, methods })
+    }
+
+    fn impl_block(&mut self) -> Result<Stmt, TogError> {
+        // impl TraitName for TypeName { ... }
+        // or
+        // impl TypeName { ... } (inherent impl)
+        
+        let first_name = self.consume_identifier()?;
+        
+        let (trait_name, type_name) = if self.match_token(&[Token::Keyword(Keyword::For)]) {
+            // impl TraitName for TypeName
+            let type_name = self.consume_identifier()?;
+            (Some(first_name), type_name)
+        } else {
+            // impl TypeName (inherent impl)
+            (None, first_name)
+        };
+        
+        self.consume(&Token::LeftBrace, "Expected '{' after impl declaration")?;
+        let mut methods = Vec::new();
+
+        // Parse method implementations
+        while self.match_token(&[Token::Keyword(Keyword::Fn)]) {
+            let method_name = self.consume_identifier()?;
+            self.consume(&Token::LeftParen, "Expected '(' after method name")?;
+            let mut params = Vec::new();
+            if !self.check(&Token::RightParen) {
+                loop {
+                    let param_name = self.consume_identifier()?;
+                    let param_type = if self.match_token(&[Token::Colon]) {
+                        Some(self.parse_type()?)
+                    } else {
+                        None
+                    };
+                    params.push(Param {
+                        name: param_name,
+                        type_annotation: param_type,
+                    });
+                    
+                    if !self.match_token(&[Token::Comma]) {
+                        break;
+                    }
+                }
+            }
+            self.consume(&Token::RightParen, "Expected ')' after parameters")?;
+            
+            let return_type = if self.match_token(&[Token::Arrow]) {
+                Some(self.parse_type()?)
+            } else {
+                None
+            };
+            
+            self.consume(&Token::LeftBrace, "Expected '{' after method signature")?;
+            let body = self.block_with_brace_consumed()?;
+            
+            methods.push(MethodDecl {
+                name: method_name,
+                params,
+                return_type,
+                body,
+            });
+        }
+
+        self.consume(&Token::RightBrace, "Expected '}' after impl body")?;
+
+        Ok(Stmt::ImplBlock {
+            trait_name,
+            type_name,
+            methods,
+        })
     }
     
     fn variable_declaration(&mut self) -> Result<Stmt, TogError> {

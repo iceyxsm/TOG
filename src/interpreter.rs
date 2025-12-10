@@ -111,6 +111,11 @@ pub struct Interpreter {
     environment: Rc<RefCell<Environment>>,
     struct_defs: HashMap<String, (Vec<(String, Option<Type>)>, Vec<MethodDecl>)>,
     enum_defs: HashMap<String, Vec<EnumVariant>>,
+    trait_defs: HashMap<String, Vec<TraitMethod>>,
+    // trait_impls: (type_name, trait_name) -> methods
+    trait_impls: HashMap<(String, String), Vec<MethodDecl>>,
+    // inherent_impls: type_name -> methods
+    inherent_impls: HashMap<String, Vec<MethodDecl>>,
 }
 
 impl Interpreter {
@@ -119,6 +124,9 @@ impl Interpreter {
             environment: Rc::new(RefCell::new(Environment::new(None))),
             struct_defs: HashMap::new(),
             enum_defs: HashMap::new(),
+            trait_defs: HashMap::new(),
+            trait_impls: HashMap::new(),
+            inherent_impls: HashMap::new(),
         }
     }
     
@@ -188,6 +196,20 @@ impl Interpreter {
                     let _variant_name = variant.name.clone();
                     // For now, we'll handle enum construction in the evaluate phase
                     // Store enum definition for later use
+                }
+                Ok((Value::None, ControlFlow::Normal))
+            }
+            Stmt::TraitDef { name, methods } => {
+                self.trait_defs.insert(name.clone(), methods.clone());
+                Ok((Value::None, ControlFlow::Normal))
+            }
+            Stmt::ImplBlock { trait_name, type_name, methods } => {
+                if let Some(trait_name) = trait_name {
+                    // Trait implementation
+                    self.trait_impls.insert((type_name.clone(), trait_name.clone()), methods.clone());
+                } else {
+                    // Inherent implementation
+                    self.inherent_impls.insert(type_name.clone(), methods.clone());
                 }
                 Ok((Value::None, ControlFlow::Normal))
             }
