@@ -1,0 +1,71 @@
+// Advanced GPU and Parallel Processing Examples
+// Real-world use cases for high-performance computing
+
+fn main() {
+    print("Advanced GPU Processing Examples")
+    print("")
+    
+    // Example 1: Large-scale data analysis
+    print("=== Example 1: Large-Scale Data Analysis ===")
+    let dataset = range(1, 10001)
+    print("Dataset size: 10,000 elements")
+    
+    let total = gpu_sum(dataset)
+    let average = gpu_mean(dataset)
+    
+    print("Total sum:")
+    print(total)
+    print("Average:")
+    print(average)
+    
+    // Example 2: Statistical computations
+    print("")
+    print("=== Example 2: Statistical Computations ===")
+    let samples = range(1, 5001)
+    print("Computing statistics on 5,000 samples...")
+    
+    let sample_mean = gpu_mean(samples)
+    let sample_sum = gpu_sum(samples)
+    
+    print("Sample mean:")
+    print(sample_mean)
+    print("Sample sum:")
+    print(sample_sum)
+    
+    // Example 3: Parallel batch processing
+    print("")
+    print("=== Example 3: Parallel Batch Processing ===")
+    let large_data = range(1, 100001)
+    print("Processing 100,000 elements in parallel...")
+    
+    let parallel_result = parallel_sum(large_data)
+    print("Parallel sum result:")
+    print(parallel_result)
+    
+    let optimal_batch = batch_size()
+    print("Optimal batch size for processing:")
+    print(optimal_batch)
+    
+    // Example 4: Factorial computation with GPU
+    print("")
+    print("=== Example 4: GPU-Accelerated Factorial ===")
+    let factorial_input = range(1, 21)
+    print("Computing 20! using GPU...")
+    let factorial_result = gpu_product(factorial_input)
+    print("20! =")
+    print(factorial_result)
+    
+    // Performance summary
+    print("")
+    print("=== Performance Summary ===")
+    print("GPU operations completed successfully!")
+    print("Benefits demonstrated:")
+    print("- Automatic GPU dispatch for numeric arrays")
+    print("- Parallel processing across multiple cores")
+    print("- Optimized batch processing")
+    print("- Zero manual optimization required")
+    
+    print("")
+    print("Advanced GPU processing completed!")
+}
+

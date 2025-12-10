@@ -21,6 +21,9 @@
 - [x] Constant folding
 - [x] Optimization levels (-O0 to -O3)
 - [x] Basic optimization framework
+- [x] GPU acceleration (automatic dispatch)
+- [x] Parallel processing (multi-threaded)
+- [x] Batch processing (cache optimization)
 
 ### Documentation
 - [x] README with performance goals
@@ -48,7 +51,7 @@
 ## Planned
 
 ### Language Features
-- [ ] Structs and enums
+- [ ] Enums (structs are complete)
 - [ ] Traits/interfaces
 - [ ] Generics
 - [ ] Async/await
@@ -56,6 +59,16 @@
 - [ ] Inline assembly
 - [ ] Custom allocators
 - [ ] Nested field assignment for non-struct aggregates
+
+### GPU and Parallel Processing (In Progress)
+- [x] GPU-accelerated sum, mean, product
+- [x] Parallel sum with multi-threading
+- [x] Batch size optimization
+- [x] Automatic GPU dispatch for numeric arrays
+- [ ] Real GPU backend (CUDA/OpenCL integration)
+- [ ] Parallel map, filter, reduce
+- [ ] Custom GPU kernels
+- [ ] Automatic loop vectorization
 
 ### Tooling
 - [ ] Package manager

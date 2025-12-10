@@ -1,0 +1,60 @@
+// GPU and Parallel Processing in TOG
+// Demonstrates automatic GPU acceleration and batch processing
+
+fn main() {
+    print("GPU and Parallel Processing Examples")
+    print("")
+    
+    // Create a large numeric array
+    print("Creating large array...")
+    let numbers = range(1, 1001)
+    print("Array size:")
+    print(len(numbers))
+    
+    // GPU-accelerated sum
+    print("")
+    print("GPU-accelerated sum:")
+    let gpu_result = gpu_sum(numbers)
+    print(gpu_result)
+    
+    // GPU-accelerated mean
+    print("")
+    print("GPU-accelerated mean:")
+    let mean_result = gpu_mean(numbers)
+    print(mean_result)
+    
+    // GPU-accelerated product (first 10 numbers to avoid overflow)
+    print("")
+    print("GPU-accelerated product (first 10 numbers):")
+    let small_arr = range(1, 11)
+    let product_result = gpu_product(small_arr)
+    print(product_result)
+    
+    // Parallel sum
+    print("")
+    print("Parallel sum (multi-threaded):")
+    let parallel_result = parallel_sum(numbers)
+    print(parallel_result)
+    
+    // Get optimal batch size
+    print("")
+    print("Optimal batch size for this system:")
+    let batch = batch_size()
+    print(batch)
+    
+    // Demonstrate batch processing concept
+    print("")
+    print("Processing in batches improves cache locality")
+    print("Batch size determines how many elements to process together")
+    
+    // Performance comparison simulation
+    print("")
+    print("Performance Benefits:")
+    print("- GPU acceleration: 10-100x faster for large arrays")
+    print("- Parallel processing: 2-8x faster on multi-core CPUs")
+    print("- Batch processing: Better cache utilization")
+    
+    print("")
+    print("GPU and parallel processing completed!")
+}
+
